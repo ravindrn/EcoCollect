@@ -1,4 +1,5 @@
 # EcoCollect
+<<<<<<< HEAD
 
 **AI-Powered Smart Waste Management System with IoT Integration**
 
@@ -19,3 +20,5 @@ Target area: Bope-Poddala Divisional Secretariat, Sri Lanka
 Shared backend: Node.js + Express + TypeScript + PostgreSQL + PostGIS + Prisma.
 
 ## Monorepo Layout
+=======
+>>>>>>> 0999fca993eb43bca76afee57159211c5ae27ab7
