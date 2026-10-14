@@ -7,9 +7,48 @@ datasource db {
   provider = "postgresql"
 }
 
-model HealthCheck {
-  id        String   @id @default(uuid())
-  checkedAt DateTime @default(now())
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
 
-  @@map("health_checks")
+enum Role {
+  CITIZEN
+  DRIVER
+  ADMIN
+}
+
+// ---------------------------------------------------------------------------
+// User & CitizenProfile
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         Role     @default(CITIZEN)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  citizenProfile CitizenProfile?
+
+  @@index([role])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model CitizenProfile {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @unique @map("user_id") @db.Uuid
+  fullName     String   @map("full_name")
+  phone        String?
+  address      String?
+  wardDivision String?  @map("ward_division")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([wardDivision])
+  @@map("citizen_profiles")
 }
