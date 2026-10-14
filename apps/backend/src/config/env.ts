@@ -8,6 +8,7 @@ const schema = z.object({
     .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
     .default('info'),
   CORS_ORIGINS: z.string().default(''),
+  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
 });
 
 const parsed = schema.safeParse(process.env);

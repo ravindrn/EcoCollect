@@ -5,6 +5,7 @@ import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
 import { logger } from './lib/logger.js';
 import { healthRouter } from './routes/health.js';
+import { healthDbRouter } from './routes/healthDb.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 
 export function createApp() {
@@ -21,6 +22,7 @@ export function createApp() {
   app.use(pinoHttp({ logger }));
 
   app.use('/api/v1/health', healthRouter);
+  app.use('/api/v1/health/db', healthDbRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -1,0 +1,15 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model HealthCheck {
+  id        String   @id @default(uuid())
+  checkedAt DateTime @default(now())
+
+  @@map("health_checks")
+}

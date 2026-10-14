@@ -42,3 +42,12 @@ desktop.ini
 # Prisma local artifacts
 apps/backend/prisma/*.db
 apps/backend/prisma/*.db-journal
+
+# Prisma generated client
+apps/backend/src/generated/
+
+# Prisma AI tooling folders
+apps/backend/.agents/
+apps/backend/.claude/
+apps/backend/.windsurf/
+apps/backend/skills-lock.json
