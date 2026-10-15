@@ -1,3 +1,4 @@
+// @tsconfig ./tsconfig.node.json
 import 'dotenv/config';
 import { defineConfig } from 'prisma/config';
 
