@@ -52,3 +52,10 @@ model CitizenProfile {
   @@index([wardDivision])
   @@map("citizen_profiles")
 }
+
+model HealthCheck {
+  id        String   @id @default(uuid()) @db.Uuid
+  checkedAt DateTime @default(now()) @map("checked_at")
+
+  @@map("health_checks")
+}

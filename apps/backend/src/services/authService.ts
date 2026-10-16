@@ -7,7 +7,7 @@ export type RegisterInput = {
   email: string;
   password: string;
   fullName: string;
-  phone?: string;
+  phone: string;
   address?: string;
   wardDivision?: string;
 };
@@ -43,13 +43,13 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
       passwordHash,
       role: 'CITIZEN',
       citizenProfile: {
-        create: {
-          fullName: input.fullName.trim(),
-          phone: input.phone?.trim() || null,
-          address: input.address?.trim() || null,
-          wardDivision: input.wardDivision?.trim() || null,
-        },
-      },
+  create: {
+    fullName: input.fullName.trim(),
+    phone: input.phone.trim(),
+    address: input.address?.trim() || null,
+    wardDivision: input.wardDivision?.trim() || null,
+  },
+},
     },
     include: { citizenProfile: true },
   });
