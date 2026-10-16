@@ -35,38 +35,48 @@ export function LoginScreen({ navigation }: Props) {
   return (
     <ScreenContainer>
       <View style={styles.header}>
+        <View style={styles.logo}>
+          <Text style={styles.logoEmoji}>🌿</Text>
+        </View>
+        <Text style={styles.brand}>EcoCollect</Text>
         <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to EcoCollect</Text>
+        <Text style={styles.subtitle}>Sign in to manage your pickups</Text>
       </View>
 
-      <TextField
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="email-address"
-        textContentType="emailAddress"
-        placeholder="you@example.com"
-      />
+      <View style={styles.card}>
+        <TextField
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          textContentType="emailAddress"
+          placeholder="you@example.com"
+        />
 
-      <TextField
-        label="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        textContentType="password"
-        placeholder="••••••••"
-      />
+        <TextField
+          label="Password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          textContentType="password"
+          placeholder="••••••••"
+        />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.error}>{error}</Text>
+          </View>
+        ) : null}
 
-      <PrimaryButton
-        title="Sign in"
-        onPress={handleLogin}
-        loading={loading}
-        disabled={!email || !password}
-      />
+        <PrimaryButton
+          title="Sign in"
+          onPress={handleLogin}
+          loading={loading}
+          disabled={!email || !password}
+        />
+      </View>
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>New here? </Text>
@@ -82,15 +92,55 @@ export function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  header: { marginTop: 12, marginBottom: 28 },
-  title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
-  subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
-  error: { color: colors.error, marginBottom: 12, fontSize: 13 },
+  header: { marginTop: 24, marginBottom: 28, alignItems: 'center' },
+  logo: {
+    width: 68,
+    height: 68,
+    borderRadius: 22,
+    backgroundColor: '#ECFDF3',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  logoEmoji: { fontSize: 32 },
+  brand: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 18,
+  },
+  title: { fontSize: 28, fontWeight: '800', color: colors.textPrimary },
+  subtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  errorBox: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+  },
+  error: { color: colors.error, fontSize: 13, lineHeight: 18 },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 20,
+    marginTop: 24,
+    marginBottom: 12,
   },
-  footerText: { color: colors.textSecondary },
-  link: { color: colors.primary, fontWeight: '600' },
+  footerText: { color: colors.textSecondary, fontSize: 14 },
+  link: { color: colors.primary, fontWeight: '700', fontSize: 14 },
 });
