@@ -1,7 +1,7 @@
-import { prisma } from '../lib/prisma.js';
-import { hashPassword, verifyPassword } from '../lib/password.js';
-import { signAccessToken, type Role } from '../lib/jwt.js';
-import { HttpError } from '../middleware/error.js';
+import { prisma } from "../lib/prisma.js";
+import { hashPassword, verifyPassword } from "../lib/password.js";
+import { signAccessToken, type Role } from "../lib/jwt.js";
+import { HttpError } from "../middleware/error.js";
 
 export type RegisterInput = {
   email: string;
@@ -10,6 +10,7 @@ export type RegisterInput = {
   phone: string;
   address?: string;
   wardDivision?: string;
+  areaId: string;
 };
 
 export type LoginInput = {
@@ -32,7 +33,7 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    throw new HttpError(409, 'Email already registered', 'EMAIL_TAKEN');
+    throw new HttpError(409, "Email already registered", "EMAIL_TAKEN");
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -41,15 +42,18 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     data: {
       email,
       passwordHash,
-      role: 'CITIZEN',
+      role: "CITIZEN",
       citizenProfile: {
-  create: {
-    fullName: input.fullName.trim(),
-    phone: input.phone.trim(),
-    address: input.address?.trim() || null,
-    wardDivision: input.wardDivision?.trim() || null,
-  },
-},
+        create: {
+          fullName: input.fullName.trim(),
+          phone: input.phone.trim(),
+          address: input.address?.trim() || null,
+          wardDivision: input.wardDivision?.trim() || null,
+          area: {
+            connect: { id: input.areaId },
+          },
+        },
+      },
     },
     include: { citizenProfile: true },
   });
@@ -76,12 +80,20 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   });
 
   if (!user || !user.isActive) {
-    throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
+    throw new HttpError(
+      401,
+      "Invalid email or password",
+      "INVALID_CREDENTIALS",
+    );
   }
 
   const ok = await verifyPassword(user.passwordHash, input.password);
   if (!ok) {
-    throw new HttpError(401, 'Invalid email or password', 'INVALID_CREDENTIALS');
+    throw new HttpError(
+      401,
+      "Invalid email or password",
+      "INVALID_CREDENTIALS",
+    );
   }
 
   const token = signAccessToken({ sub: user.id, role: user.role as Role });

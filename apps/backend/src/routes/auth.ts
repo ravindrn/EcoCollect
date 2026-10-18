@@ -12,6 +12,7 @@ const registerSchema = z.object({
   phone: z.string().min(7).max(20),
   address: z.string().max(255).optional(),
   wardDivision: z.string().max(120).optional(),
+  areaId: z.string().uuid(),
 });
 
 const loginSchema = z.object({

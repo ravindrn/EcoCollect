@@ -8,6 +8,8 @@ import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
 import { usersRouter } from './routes/users.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
+import { areasRouter } from './routes/areas.js';
+import { announcementsRouter } from './routes/announcements.js';
 
 export function createApp() {
   const app = express();
@@ -25,6 +27,8 @@ export function createApp() {
   app.use('/api/v1/health', healthRouter);
   app.use('/api/v1/auth', authRouter);
   app.use('/api/v1/users', usersRouter);
+  app.use('/api/v1/areas', areasRouter);
+  app.use('/api/v1/announcements', announcementsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
