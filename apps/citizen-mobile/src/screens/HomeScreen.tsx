@@ -3,6 +3,9 @@ import { ScreenContainer } from "../components/ScreenContainer";
 import { AppHeader } from "../components/AppHeader";
 import { useAuth } from "../contexts/AuthContext";
 import { colors } from "../theme/colors";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Pressable } from "react-native";
+import { api } from "../services/http";
 
 const COLLECTION_DAYS: Record<string, number> = {
   "Area A": 1, // Monday
@@ -11,6 +14,27 @@ const COLLECTION_DAYS: Record<string, number> = {
   "Area D": 4, // Thursday
   "Area E": 5, // Friday
 };
+
+type Announcement = {
+  id: string;
+  title: string;
+  description: string;
+  priority: "NORMAL" | "IMPORTANT" | "URGENT";
+  publishedAt: string | null;
+};
+
+function formatAnnouncementDate(value: string | null): string {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+  });
+}
 
 function getNextCollectionDate(
   areaName: string | null | undefined,
@@ -45,6 +69,48 @@ function formatCollectionDate(date: Date): string {
 
 export function HomeScreen() {
   const { user } = useAuth();
+
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
+  const [announcementError, setAnnouncementError] = useState(false);
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadAnnouncements() {
+      try {
+        setLoadingAnnouncements(true);
+        setAnnouncementError(false);
+
+        const data = await api.get<Announcement[]>("/announcements");
+
+        if (active) {
+          setAnnouncements(Array.isArray(data) ? data : []);
+        }
+      } catch (error) {
+        console.error("Failed to load announcements:", error);
+
+        if (active) {
+          setAnnouncementError(true);
+        }
+      } finally {
+        if (active) {
+          setLoadingAnnouncements(false);
+        }
+      }
+    }
+
+    loadAnnouncements();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const visibleAnnouncements = showAllAnnouncements
+    ? announcements
+    : announcements.slice(0, 3);
 
   const nextCollectionDate = getNextCollectionDate(user?.areaName);
 
@@ -102,6 +168,70 @@ export function HomeScreen() {
           <Text style={styles.collectionArea}>
             Scheduled Collection area: {user?.areaName || "Area not selected"}
           </Text>
+        </View>
+
+        <View style={styles.updatesSection}>
+          <View style={styles.updatesHeader}>
+            <Text style={styles.updatesTitle}>Latest Council Updates</Text>
+
+            {announcements.length > 3 && (
+              <Pressable
+                onPress={() => setShowAllAnnouncements((previous) => !previous)}
+              >
+                <Text style={styles.viewAll}>
+                  {showAllAnnouncements ? "Show Less" : "View All"}
+                </Text>
+              </Pressable>
+            )}
+          </View>
+
+          {loadingAnnouncements ? (
+            <ActivityIndicator
+              color={colors.primary}
+              style={{ marginTop: 20 }}
+            />
+          ) : announcementError ? (
+            <View style={styles.emptyUpdates}>
+              <Text style={styles.emptyUpdatesText}>
+                Unable to load council updates. Please try again later.
+              </Text>
+            </View>
+          ) : visibleAnnouncements.length === 0 ? (
+            <View style={styles.emptyUpdates}>
+              <Text style={styles.emptyUpdatesText}>
+                No council updates available right now.
+              </Text>
+            </View>
+          ) : (
+            visibleAnnouncements.map((announcement) => (
+              <View key={announcement.id} style={styles.announcementCard}>
+                <View style={styles.announcementTopRow}>
+                  <Text
+                    style={[
+                      styles.priorityBadge,
+                      announcement.priority === "URGENT" && styles.urgentBadge,
+                      announcement.priority === "IMPORTANT" &&
+                        styles.importantBadge,
+                    ]}
+                  >
+                    {announcement.priority}
+                  </Text>
+
+                  <Text style={styles.announcementDate}>
+                    {formatAnnouncementDate(announcement.publishedAt)}
+                  </Text>
+                </View>
+
+                <Text style={styles.announcementTitle}>
+                  {announcement.title}
+                </Text>
+
+                <Text style={styles.announcementDescription}>
+                  {announcement.description}
+                </Text>
+              </View>
+            ))
+          )}
         </View>
       </View>
     </ScreenContainer>
@@ -212,4 +342,101 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#475569",
   },
+
+  
+updatesSection: {
+  marginTop: 28,
+  marginBottom: 24,
+},
+
+updatesHeader: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 14,
+},
+
+updatesTitle: {
+  fontSize: 20,
+  fontWeight: "700",
+  color: "#0F172A",
+  flex: 1,
+},
+
+viewAll: {
+  fontSize: 14,
+  fontWeight: "600",
+  color: colors.primary,
+  marginLeft: 10,
+},
+
+announcementCard: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "#E5E7EB",
+  padding: 16,
+  marginBottom: 12,
+},
+
+announcementTopRow: {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 12,
+},
+
+priorityBadge: {
+  overflow: "hidden",
+  borderRadius: 6,
+  paddingHorizontal: 9,
+  paddingVertical: 5,
+  backgroundColor: "#F1F5F9",
+  color: "#475569",
+  fontSize: 10,
+  fontWeight: "700",
+},
+
+importantBadge: {
+  backgroundColor: "#FEF3C7",
+  color: "#92400E",
+},
+
+urgentBadge: {
+  backgroundColor: "#FEE2E2",
+  color: "#B91C1C",
+},
+
+announcementDate: {
+  fontSize: 12,
+  color: "#64748B",
+},
+
+announcementTitle: {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#0F172A",
+  marginBottom: 6,
+},
+
+announcementDescription: {
+  fontSize: 14,
+  lineHeight: 21,
+  color: "#64748B",
+},
+
+emptyUpdates: {
+  backgroundColor: "#FFFFFF",
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: "#E5E7EB",
+  padding: 18,
+},
+
+emptyUpdatesText: {
+  fontSize: 14,
+  lineHeight: 21,
+  color: "#64748B",
+},
+
 });
