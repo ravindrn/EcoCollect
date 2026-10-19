@@ -14,9 +14,40 @@ Shared setup tasks are Jira children of the Driver epic and are linked to the Ad
 
 1. Stay on `feature/mahela-driver-admin`.
 2. Build only the next unchecked task.
-3. Use fixtures until the backend exposes the real endpoint. Do not build Prisma, PostGIS, the citizen app, the AI services, or the ESP32.
+3. Call the real backend for auth, users, areas, announcements, and community updates. Leave Prisma, the citizen app, the AI services, and the ESP32 to the rest of the team.
 4. On this machine `pnpm` is not on PATH. Run package scripts with `corepack pnpm --filter <package> <script>`.
 5. Run that task's Verify steps. Keep the command output or a screenshot until the box is checked.
+
+## Build order after the backend merge
+
+The `ishara` branch is merged into `feature/mahela-driver-admin`. The backend now has PostgreSQL, Prisma, and these endpoints:
+
+| Endpoint | Use it for |
+|---|---|
+| `POST /api/v1/auth/login` | Driver and admin sign-in. Reject the wrong role in the app. |
+| `GET /api/v1/users/me` | The signed-in profile. |
+| `GET /api/v1/areas` | Area names for admin lists and driver context. |
+| `/api/v1/announcements` | Admin writes notices. The driver app reads published notices. |
+| `/api/v1/community-updates` | Admin review of citizen community posts. |
+
+There is still no tractor, route, GPS, bin, weight, or engine data in the database. Those screens stay typed and behind the fixture flag. Build them only after that data exists, so the remaining work is connecting the screens to the new endpoints.
+
+### Do these next
+
+1. Task 5. Error boundaries in both apps.
+2. Task 6. Session storage for the real JWT.
+3. Task 7. Driver login with `POST /api/v1/auth/login`.
+4. Task 8. English, Sinhala, and Tamil.
+5. Task 17. Admin layout.
+6. Task 18. Admin login with the same auth endpoint.
+7. Admin areas list from `GET /api/v1/areas`.
+8. Task 22. Announcements: admin creates and publishes, driver inbox shows published items.
+9. Admin user list for drivers and citizens from the users endpoint.
+10. Admin view of community updates.
+
+### Wait for GPS and bin data
+
+Tasks 10–16, 19, 20, 23–28, and 30. That is the trip map, engine time, speed, fuel, collected weight, time wastage, the fleet map, the geofence editor, the trip reports, the wastage charts, deviation alerts, playback, and the offline GPS queue. The contracts and fixtures for those shapes already exist, so this later work is a small connection step.
 
 ## Already done
 
