@@ -10,6 +10,7 @@ import { usersRouter } from './routes/users.js';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
 import { areasRouter } from './routes/areas.js';
 import { announcementsRouter } from './routes/announcements.js';
+import { communityUpdatesRouter } from "./routes/communityUpdates.js";
 
 export function createApp() {
   const app = express();
@@ -29,6 +30,7 @@ export function createApp() {
   app.use('/api/v1/users', usersRouter);
   app.use('/api/v1/areas', areasRouter);
   app.use('/api/v1/announcements', announcementsRouter);
+  app.use("/api/v1/community-updates", communityUpdatesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

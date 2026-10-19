@@ -28,6 +28,10 @@ model User {
 
   citizenProfile CitizenProfile?
 
+  communityUpdates CommunityUpdate[]
+  communityReactions CommunityReaction[]
+  communityComments CommunityComment[]
+
   @@index([role])
   @@index([createdAt])
   @@map("users")
@@ -66,9 +70,61 @@ model Area {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   citizenProfiles CitizenProfile[]
+  communityUpdates CommunityUpdate[]
 
   @@map("areas")
 }
+
+
+model CommunityUpdate {
+  id        String   @id @default(uuid()) @db.Uuid
+  content   String   @db.Text
+  userId    String   @map("user_id") @db.Uuid
+  areaId    String   @map("area_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  area      Area                @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  reactions CommunityReaction[]
+  comments  CommunityComment[]
+
+  @@index([areaId, createdAt])
+  @@index([userId, createdAt])
+  @@map("community_updates")
+}
+
+model CommunityReaction {
+  id        String   @id @default(uuid()) @db.Uuid
+  updateId  String   @map("update_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  update CommunityUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // One Helpful reaction per user for each update.
+  @@unique([updateId, userId])
+  @@index([userId])
+  @@map("community_reactions")
+}
+
+model CommunityComment {
+  id        String   @id @default(uuid()) @db.Uuid
+  content   String   @db.Text
+  updateId  String   @map("update_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  update CommunityUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([updateId, createdAt])
+  @@index([userId])
+  @@map("community_comments")
+}
+
 
 
 enum AnnouncementPriority {
