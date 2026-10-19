@@ -1,4 +1,4 @@
-
+import { hashPassword } from "../src/lib/password.js";
 import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
@@ -28,6 +28,27 @@ async function main() {
       create: { name },
     });
   }
+  const accounts = [
+    { email: "admin@ecocollect.local", password: "AdminDev123!", role: "ADMIN" as const },
+    { email: "driver@ecocollect.local", password: "DriverDev123!", role: "DRIVER" as const },
+  ];
+  
+  for (const account of accounts) {
+    const passwordHash = await hashPassword(account.password);
+  
+    await prisma.user.upsert({
+      where: { email: account.email },
+      update: { passwordHash, role: account.role, isActive: true },
+      create: {
+        email: account.email,
+        passwordHash,
+        role: account.role,
+        isActive: true,
+      },
+    });
+  }
+  
+  console.log("Development admin and driver accounts are ready.");
 
   console.log("EcoCollect areas seeded successfully.");
 }
