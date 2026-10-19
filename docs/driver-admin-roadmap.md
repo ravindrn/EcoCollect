@@ -160,7 +160,7 @@ Verify:
 
 ### 5. Error boundaries
 
-- [ ] [SWMSBP-52](https://ravindunadeesha.atlassian.net/browse/SWMSBP-52)
+- [x] [SWMSBP-52](https://ravindunadeesha.atlassian.net/browse/SWMSBP-52)
 - Epics: SWMSBP-5, linked to SWMSBP-6. Difficulty: Easy. Depends on: task 1.
 
 A visible fallback in each app when a screen throws, with a way to try again.
@@ -178,7 +178,7 @@ Verify:
 
 ### 6. Session storage
 
-- [ ] [SWMSBP-53](https://ravindunadeesha.atlassian.net/browse/SWMSBP-53)
+- [x] [SWMSBP-53](https://ravindunadeesha.atlassian.net/browse/SWMSBP-53)
 - Epics: SWMSBP-5, linked to SWMSBP-6. Difficulty: Medium. Depends on: task 4.
 
 Driver access token in `expo-secure-store`. Admin access token in memory only. Language and other UI preferences may use local storage.

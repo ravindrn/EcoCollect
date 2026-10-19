@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { env } from './src/config/env'
 
 export default function App() {
+  
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
