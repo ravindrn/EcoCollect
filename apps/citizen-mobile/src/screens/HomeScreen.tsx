@@ -364,70 +364,104 @@ export function HomeScreen() {
 
   return (
     <ScreenContainer scroll={true}>
-  <View className="flex-1 px-5 pb-6">
+      <View className="flex-1 px-5 pb-10">
         <AppHeader onNotificationPress={() => {}} />
 
-        <View className="mt-3 mb-6 flex-row items-center gap-4">
-          <View className="h-[68px] w-[68px] items-center justify-center rounded-full border-2 border-emerald-200 bg-emerald-100">
-            <Text className="text-[28px] font-bold text-emerald-700">
-              {initial}
-            </Text>
+        {/* ───────────── Welcome ───────────── */}
+        <View className="mb-5 mt-4 flex-row items-center gap-4">
+          <View className="h-[72px] w-[72px] items-center justify-center rounded-full bg-emerald-100 p-1">
+            <View className="h-full w-full items-center justify-center rounded-full bg-emerald-600">
+              <Text className="text-[28px] font-extrabold text-white">
+                {initial}
+              </Text>
+            </View>
           </View>
 
           <View className="flex-1">
-            <Text className="text-[15px] text-slate-500">{greeting},</Text>
+            <Text className="text-sm font-medium text-slate-500">
+              {greeting},
+            </Text>
 
-            <Text className="mt-[3px] text-[26px] font-bold text-slate-900">
+            <Text
+              className="mt-0.5 text-[26px] font-extrabold tracking-tight text-slate-900"
+              numberOfLines={1}
+            >
               {firstName}! 👋
             </Text>
 
-            <View className="mt-2 flex-row items-center gap-1">
-              <Text className="text-sm">📍</Text>
-              <Text className="text-[13px] font-semibold text-green-700">
-                {user?.areaName || "Area not selected"}
+            <View className="mt-2 flex-row">
+              <View className="flex-row items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1">
+                <Text className="text-xs">📍</Text>
+                <Text className="text-xs font-semibold text-emerald-700">
+                  {user?.areaName || "Area not selected"}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <Text className="mb-5 text-[13px] leading-5 text-slate-500">
+          Let's keep our community clean.
+        </Text>
+
+        {/* ───────────── Next Collection (hero card) ───────────── */}
+        <View className="overflow-hidden rounded-3xl bg-emerald-600 p-5 shadow-md">
+          {/* Decorative shapes */}
+          <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+          <View className="absolute -bottom-12 right-10 h-32 w-32 rounded-full bg-white/10" />
+
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2.5">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+                <Text className="text-xl">🗓️</Text>
+              </View>
+              <Text className="text-base font-bold text-white">
+                Next Collection
               </Text>
             </View>
 
-            <Text className="mt-[7px] text-[13px] leading-[19px] text-slate-500">
-              Let's keep our community clean.
-            </Text>
-          </View>
-        </View>
-
-        <View className="mt-6 rounded-[18px] border border-gray-200 bg-white p-5">
-          <View className="flex-row items-center gap-2.5">
-            <Text className="text-[22px]">🗓️</Text>
-            <Text className="text-xl font-bold text-slate-900">
-              Next Collection
-            </Text>
+            <View className="rounded-full bg-white/20 px-3 py-1">
+              <Text className="text-[11px] font-bold uppercase tracking-wide text-white">
+                {user?.areaName || "No area"}
+              </Text>
+            </View>
           </View>
 
-          <Text className="mt-2.5 text-sm text-slate-500">
+          <Text className="mt-5 text-[13px] font-medium text-emerald-50">
             Your area's next garbage collection
           </Text>
 
-          <Text className="mt-3 text-[21px] font-bold text-green-700">
+          <Text className="mt-1.5 text-[26px] font-extrabold leading-8 text-white">
             {nextCollectionDateText}
           </Text>
 
-          <Text className="mt-3 text-[13px] text-slate-600">
-            Scheduled Collection area: {user?.areaName || "Area not selected"}
-          </Text>
+          <View className="mt-4 border-t border-white/20 pt-3">
+            <Text className="text-[12px] text-emerald-50">
+              Scheduled Collection area:{" "}
+              <Text className="font-bold text-white">
+                {user?.areaName || "Area not selected"}
+              </Text>
+            </Text>
+          </View>
         </View>
 
-        <View className="mt-7">
+        {/* ───────────── Council Updates ───────────── */}
+        <View className="mt-8">
           {/* Section Header */}
           <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-slate-900">
-              Latest Council Updates
-            </Text>
+            <View className="flex-row items-center gap-2.5">
+              <View className="h-5 w-1.5 rounded-full bg-emerald-600" />
+              <Text className="text-xl font-extrabold text-slate-900">
+                Latest Council Updates
+              </Text>
+            </View>
 
             {announcements.length > 3 && (
               <Pressable
                 onPress={() => setShowAllAnnouncements((previous) => !previous)}
-                className="rounded-lg px-2 py-1"
+                className="rounded-full bg-emerald-50 px-3 py-1.5"
               >
-                <Text className="text-sm font-semibold text-green-700">
+                <Text className="text-[13px] font-bold text-emerald-700">
                   {showAllAnnouncements ? "Show Less" : "View All"}
                 </Text>
               </Pressable>
@@ -440,14 +474,16 @@ export function HomeScreen() {
               style={{ marginTop: 20 }}
             />
           ) : announcementError ? (
-            <View className="items-center rounded-2xl border border-gray-200 bg-white px-4 py-6">
-              <Text className="text-center text-sm leading-5 text-slate-500">
+            <View className="items-center rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8">
+              <Text className="text-3xl">⚠️</Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-slate-500">
                 Unable to load council updates. Please try again later.
               </Text>
             </View>
           ) : visibleAnnouncements.length === 0 ? (
-            <View className="items-center rounded-2xl border border-gray-200 bg-white px-4 py-6">
-              <Text className="text-center text-sm leading-5 text-slate-500">
+            <View className="items-center rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8">
+              <Text className="text-3xl">📭</Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-slate-500">
                 No council updates available right now.
               </Text>
             </View>
@@ -455,73 +491,113 @@ export function HomeScreen() {
             visibleAnnouncements.map((announcement) => (
               <View
                 key={announcement.id}
-                className="mb-3 rounded-2xl border border-gray-200 bg-white p-4"
+                className={`mb-3 overflow-hidden rounded-2xl border bg-white shadow-sm ${
+                  announcement.priority === "URGENT"
+                    ? "border-red-100"
+                    : announcement.priority === "IMPORTANT"
+                      ? "border-amber-100"
+                      : "border-gray-100"
+                }`}
               >
-                {/* Priority and Date */}
-                <View className="mb-3 flex-row items-center justify-between gap-2">
+                <View className="flex-row">
+                  {/* Priority accent bar */}
                   <View
-                    className={`rounded-full px-3 py-1 ${
+                    className={`w-1.5 ${
                       announcement.priority === "URGENT"
-                        ? "bg-red-100"
+                        ? "bg-red-500"
                         : announcement.priority === "IMPORTANT"
-                          ? "bg-amber-100"
-                          : "bg-gray-100"
+                          ? "bg-amber-500"
+                          : "bg-slate-300"
                     }`}
-                  >
-                    <Text
-                      className={`text-[11px] font-bold ${
-                        announcement.priority === "URGENT"
-                          ? "text-red-700"
-                          : announcement.priority === "IMPORTANT"
-                            ? "text-amber-700"
-                            : "text-slate-600"
-                      }`}
-                    >
-                      {announcement.priority}
+                  />
+
+                  <View className="flex-1 p-4">
+                    {/* Priority and Date */}
+                    <View className="mb-3 flex-row items-center justify-between gap-2">
+                      <View
+                        className={`flex-row items-center gap-1.5 rounded-full px-2.5 py-1 ${
+                          announcement.priority === "URGENT"
+                            ? "bg-red-100"
+                            : announcement.priority === "IMPORTANT"
+                              ? "bg-amber-100"
+                              : "bg-gray-100"
+                        }`}
+                      >
+                        <View
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            announcement.priority === "URGENT"
+                              ? "bg-red-600"
+                              : announcement.priority === "IMPORTANT"
+                                ? "bg-amber-600"
+                                : "bg-slate-400"
+                          }`}
+                        />
+                        <Text
+                          className={`text-[11px] font-bold tracking-wide ${
+                            announcement.priority === "URGENT"
+                              ? "text-red-700"
+                              : announcement.priority === "IMPORTANT"
+                                ? "text-amber-700"
+                                : "text-slate-600"
+                          }`}
+                        >
+                          {announcement.priority}
+                        </Text>
+                      </View>
+
+                      <Text className="text-xs font-medium text-slate-400">
+                        {formatAnnouncementDate(announcement.publishedAt)}
+                      </Text>
+                    </View>
+
+                    {/* Announcement Title */}
+                    <Text className="mb-1.5 text-base font-bold leading-6 text-slate-900">
+                      {announcement.title}
+                    </Text>
+
+                    {/* Announcement Description */}
+                    <Text className="text-sm leading-6 text-slate-600">
+                      {announcement.description}
                     </Text>
                   </View>
-
-                  <Text className="text-xs text-slate-400">
-                    {formatAnnouncementDate(announcement.publishedAt)}
-                  </Text>
                 </View>
-
-                {/* Announcement Title */}
-                <Text className="mb-2 text-base font-bold leading-6 text-slate-900">
-                  {announcement.title}
-                </Text>
-
-                {/* Announcement Description */}
-                <Text className="text-sm leading-6 text-slate-600">
-                  {announcement.description}
-                </Text>
               </View>
             ))
           )}
         </View>
 
+        {/* ───────────── Community Updates ───────────── */}
         <View className="mt-8">
           {/* Section Header */}
-          <Text className="text-xl font-bold text-slate-900">
-            Community Updates
-          </Text>
+          <View className="flex-row items-center gap-2.5">
+            <View className="h-5 w-1.5 rounded-full bg-emerald-600" />
+            <Text className="text-xl font-extrabold text-slate-900">
+              Community Updates
+            </Text>
+          </View>
 
-          <Text className="mt-1 text-sm text-slate-500">
+          <Text className="mb-4 ml-4 mt-1 text-sm text-slate-500">
             Updates from citizens in your area
           </Text>
 
           {/* Share Update Card */}
-          <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-            <Text className="text-lg font-bold text-slate-900">
-              Share an Update
-            </Text>
-
-            <Text className="mt-1 text-sm text-slate-500">
-              Inform people in your community.
-            </Text>
+          <View className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
+            <View className="flex-row items-center gap-3">
+              <View className="h-10 w-10 items-center justify-center rounded-xl bg-emerald-100">
+                <Text className="text-lg">✍️</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-base font-bold text-slate-900">
+                  Share an Update
+                </Text>
+                <Text className="text-[13px] text-slate-500">
+                  Inform people in your community.
+                </Text>
+              </View>
+            </View>
 
             <TextInput
-              className="mt-4 min-h-[120px] rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-slate-800"
+              className="mt-4 min-h-[120px] rounded-2xl border border-gray-200 bg-gray-50 p-3.5 text-sm leading-5 text-slate-800"
               placeholder="What's happening in your area?"
               placeholderTextColor="#94A3B8"
               value={newUpdate}
@@ -531,12 +607,17 @@ export function HomeScreen() {
               textAlignVertical="top"
             />
 
-            <Text className="mt-2 text-right text-xs text-slate-400">
-              {newUpdate.length}/1000
-            </Text>
+            <View className="mt-3 flex-row items-center justify-between">
+              <Text className="text-xs text-slate-400">
+                Be kind and keep it relevant
+              </Text>
+              <Text className="text-xs font-medium text-slate-400">
+                {newUpdate.length}/1000
+              </Text>
+            </View>
 
             <Pressable
-              className={`mt-3 min-h-[48px] items-center justify-center rounded-xl px-4 py-3 ${
+              className={`mt-3 min-h-[50px] items-center justify-center rounded-2xl px-4 py-3 ${
                 postingUpdate ? "bg-emerald-400" : "bg-emerald-600"
               }`}
               onPress={handlePostUpdate}
@@ -545,7 +626,7 @@ export function HomeScreen() {
               {postingUpdate ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text className="text-sm font-bold text-white">
+                <Text className="text-[15px] font-bold text-white">
                   Post Update
                 </Text>
               )}
@@ -553,17 +634,17 @@ export function HomeScreen() {
           </View>
 
           {/* Recent Updates Header */}
-          <View className="mb-4 mt-6 flex-row items-center justify-between">
-            <Text className="text-lg font-bold text-slate-900">
+          <View className="mb-4 mt-7 flex-row items-center justify-between">
+            <Text className="text-lg font-extrabold text-slate-900">
               Recent Updates
             </Text>
 
             {communityUpdates.length > 3 && (
               <Pressable
                 onPress={() => setShowAllCommunity((previous) => !previous)}
-                className="rounded-lg px-2 py-1"
+                className="rounded-full bg-emerald-50 px-3 py-1.5"
               >
-                <Text className="text-sm font-semibold text-green-700">
+                <Text className="text-[13px] font-bold text-emerald-700">
                   {showAllCommunity ? "Show Less" : "View All"}
                 </Text>
               </Pressable>
@@ -577,13 +658,14 @@ export function HomeScreen() {
               style={{ marginTop: 20 }}
             />
           ) : communityError ? (
-            <View className="items-center rounded-2xl border border-gray-200 bg-white px-4 py-6">
-              <Text className="text-center text-sm leading-5 text-slate-500">
+            <View className="items-center rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8">
+              <Text className="text-3xl">⚠️</Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-slate-500">
                 Unable to load community updates.
               </Text>
 
               <Pressable
-                className="mt-3 rounded-lg px-3 py-2"
+                className="mt-4 rounded-full bg-emerald-50 px-4 py-2"
                 onPress={async () => {
                   try {
                     setCommunityError(false);
@@ -602,14 +684,15 @@ export function HomeScreen() {
                   }
                 }}
               >
-                <Text className="text-sm font-semibold text-green-700">
+                <Text className="text-sm font-bold text-emerald-700">
                   Try Again
                 </Text>
               </Pressable>
             </View>
           ) : communityUpdates.length === 0 ? (
-            <View className="items-center rounded-2xl border border-gray-200 bg-white px-4 py-6">
-              <Text className="text-center text-sm leading-5 text-slate-500">
+            <View className="items-center rounded-2xl border border-dashed border-gray-300 bg-white px-4 py-8">
+              <Text className="text-3xl">🌱</Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-slate-500">
                 No community updates yet. Be the first to share an update!
               </Text>
             </View>
@@ -620,7 +703,7 @@ export function HomeScreen() {
             ).map((item) => (
               <View
                 key={item.id}
-                className="mb-3 rounded-2xl border border-gray-200 bg-white p-4"
+                className="mb-3 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
               >
                 {/* Author */}
                 <View className="flex-row items-center gap-3">
@@ -635,7 +718,7 @@ export function HomeScreen() {
                       {item.authorName}
                     </Text>
 
-                    <Text className="mt-1 text-xs text-slate-500">
+                    <Text className="mt-0.5 text-xs text-slate-500">
                       {user?.areaName || "Your area"} ·{" "}
                       {formatTimeAgo(item.createdAt)}
                     </Text>
@@ -643,19 +726,23 @@ export function HomeScreen() {
                 </View>
 
                 {/* Update Content */}
-                <Text className="mt-4 text-sm leading-6 text-slate-700">
+                <Text className="mt-3.5 text-[14px] leading-6 text-slate-700">
                   {item.content}
                 </Text>
 
                 {/* Actions */}
-                <View className="mt-4 flex-row flex-wrap items-center gap-3 border-t border-gray-100 pt-3">
+                <View className="mt-4 flex-row flex-wrap items-center gap-2.5 border-t border-gray-100 pt-3.5">
                   <Pressable
-                    className="rounded-lg px-2 py-2"
+                    className={`rounded-full border px-3.5 py-2 ${
+                      item.isHelpful
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-gray-200 bg-white"
+                    }`}
                     onPress={() => handleHelpful(item)}
                     disabled={helpfulLoadingId !== null}
                   >
                     <Text
-                      className={`text-sm font-semibold ${
+                      className={`text-[13px] font-semibold ${
                         item.isHelpful ? "text-emerald-700" : "text-slate-600"
                       }`}
                     >
@@ -665,10 +752,10 @@ export function HomeScreen() {
                   </Pressable>
 
                   <Pressable
-                    className="rounded-lg px-2 py-2"
+                    className="rounded-full border border-gray-200 bg-white px-3.5 py-2"
                     onPress={() => handleOpenComments(item)}
                   >
-                    <Text className="text-sm font-semibold text-slate-600">
+                    <Text className="text-[13px] font-semibold text-slate-600">
                       💬 Comments ({item.commentCount})
                     </Text>
                   </Pressable>
@@ -679,6 +766,7 @@ export function HomeScreen() {
         </View>
       </View>
 
+      {/* ───────────── Comments Modal ───────────── */}
       <Modal
         visible={selectedUpdate !== null}
         animationType="slide"
@@ -691,19 +779,24 @@ export function HomeScreen() {
         >
           {/* Modal Backdrop */}
           <Pressable
-            className="absolute inset-0 bg-black/50"
+            className="absolute inset-0 bg-slate-900/60"
             onPress={() => setSelectedUpdate(null)}
           />
 
-          {/* Comments Modal */}
-          <View className="max-h-[85%] rounded-t-3xl bg-white px-5 pb-3 pt-5">
+          {/* Comments Sheet */}
+          <View className="max-h-[85%] rounded-t-[28px] bg-white px-5 pb-3 pt-3">
+            {/* Grabber */}
+            <View className="mb-3 items-center">
+              <View className="h-1.5 w-12 rounded-full bg-gray-200" />
+            </View>
+
             {/* Header */}
             <View className="mb-4 flex-row items-center justify-between">
               <View className="flex-1">
-                <Text className="text-xl font-bold text-slate-900">
+                <Text className="text-xl font-extrabold text-slate-900">
                   Comments
                 </Text>
-                <Text className="mt-1 text-sm text-slate-500">
+                <Text className="mt-0.5 text-sm text-slate-500">
                   Join the conversation
                 </Text>
               </View>
@@ -712,19 +805,24 @@ export function HomeScreen() {
                 onPress={() => setSelectedUpdate(null)}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100"
               >
-                <Text className="text-lg font-semibold text-slate-600">✕</Text>
+                <Text className="text-base font-semibold text-slate-600">
+                  ✕
+                </Text>
               </Pressable>
             </View>
 
             {/* Original Community Update */}
             {selectedUpdate && (
-              <View className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-                <Text className="text-sm font-bold text-emerald-800">
-                  {selectedUpdate.authorName}
-                </Text>
-                <Text className="mt-2 text-sm leading-5 text-slate-700">
-                  {selectedUpdate.content}
-                </Text>
+              <View className="mb-4 flex-row overflow-hidden rounded-2xl bg-emerald-50">
+                <View className="w-1.5 bg-emerald-500" />
+                <View className="flex-1 p-3.5">
+                  <Text className="text-sm font-bold text-emerald-800">
+                    {selectedUpdate.authorName}
+                  </Text>
+                  <Text className="mt-1.5 text-sm leading-5 text-slate-700">
+                    {selectedUpdate.content}
+                  </Text>
+                </View>
               </View>
             )}
 
@@ -743,14 +841,14 @@ export function HomeScreen() {
                 </Text>
 
                 <Pressable
-                  className="rounded-lg px-3 py-2"
+                  className="rounded-full bg-emerald-50 px-4 py-2"
                   onPress={() => {
                     if (selectedUpdate) {
                       void handleOpenComments(selectedUpdate);
                     }
                   }}
                 >
-                  <Text className="text-sm font-semibold text-emerald-700">
+                  <Text className="text-sm font-bold text-emerald-700">
                     Try Again
                   </Text>
                 </Pressable>
@@ -763,7 +861,9 @@ export function HomeScreen() {
               >
                 {comments.length === 0 ? (
                   <View className="min-h-[150px] items-center justify-center py-6">
-                    <Text className="text-3xl">💬</Text>
+                    <View className="h-16 w-16 items-center justify-center rounded-full bg-emerald-50">
+                      <Text className="text-3xl">💬</Text>
+                    </View>
                     <Text className="mt-3 text-base font-bold text-slate-800">
                       No comments yet
                     </Text>
@@ -785,8 +885,8 @@ export function HomeScreen() {
                       </View>
 
                       {/* Comment Bubble */}
-                      <View className="flex-1 rounded-2xl bg-gray-100 p-3">
-                        <View className="mb-2 flex-row flex-wrap items-center justify-between gap-1">
+                      <View className="flex-1 rounded-2xl rounded-tl-md bg-gray-100 px-3.5 py-3">
+                        <View className="mb-1.5 flex-row flex-wrap items-center justify-between gap-1">
                           <Text className="text-sm font-bold text-slate-900">
                             {comment.authorName}
                           </Text>
@@ -821,7 +921,7 @@ export function HomeScreen() {
               />
 
               <Pressable
-                className={`min-h-[46px] min-w-[66px] items-center justify-center rounded-xl px-4 py-3 ${
+                className={`min-h-[46px] min-w-[70px] items-center justify-center rounded-2xl px-4 py-3 ${
                   postingComment ? "bg-emerald-400" : "bg-emerald-600"
                 }`}
                 onPress={handlePostComment}
