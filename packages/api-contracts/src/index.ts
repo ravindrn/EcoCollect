@@ -16,3 +16,4 @@ export type {
 } from './types'
 
 export { loadFixtures } from './fixtures'
+export { ApiError, createApiClient } from './client.ts'

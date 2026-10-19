@@ -112,7 +112,7 @@ Verify:
 
 ### 4. HTTP client
 
-- [ ] [SWMSBP-51](https://ravindunadeesha.atlassian.net/browse/SWMSBP-51)
+- [x] [SWMSBP-51](https://ravindunadeesha.atlassian.net/browse/SWMSBP-51)
 - Epics: SWMSBP-5, linked to SWMSBP-6. Difficulty: Medium. Depends on: task 3.
 
 One typed client per app. Timeout, one retry on network failure, and errors with a code and a message. A flag selects fixtures instead of the network. Do not log tokens or request bodies that contain passwords.
