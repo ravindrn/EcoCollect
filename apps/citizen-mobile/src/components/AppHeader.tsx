@@ -1,7 +1,6 @@
 
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { Text, View, Pressable } from 'react-native';
 import { Bell } from 'lucide-react-native';
-import { colors } from '../theme/colors';
 
 type AppHeaderProps = {
   showNotifications?: boolean;
@@ -13,15 +12,18 @@ export function AppHeader({
   onNotificationPress,
 }: AppHeaderProps) {
   return (
-    <View style={styles.header}>
-      <View style={styles.brand}>
-        <View style={styles.logo}>
-          <Text style={styles.logoEmoji}>♻️</Text>
+    <View className="mb-6 flex-row items-center justify-between">
+      <View className="flex-1 flex-row items-center">
+        <View className="mr-3 h-[46px] w-[46px] items-center justify-center rounded-[14px] bg-[#ECFDF3]">
+          <Text className="text-[27px]">♻️</Text>
         </View>
 
-        <View style={styles.brandText}>
-          <Text style={styles.appName}>EcoCollect</Text>
-          <Text style={styles.tagline}>
+        <View className="flex-1">
+          <Text className="text-[21px] font-bold text-slate-900">
+            EcoCollect
+          </Text>
+
+          <Text className="mt-[3px] text-xs text-slate-500">
             Smart Waste Management
           </Text>
         </View>
@@ -29,77 +31,16 @@ export function AppHeader({
 
       {showNotifications && (
         <Pressable
-          style={styles.notificationButton}
+          className="relative ml-3 h-11 w-11 items-center justify-center rounded-full border border-gray-200 bg-white"
           onPress={onNotificationPress}
           accessibilityRole="button"
           accessibilityLabel="Notifications"
         >
-          <Bell size={22} color={colors.textPrimary} />
-          <View style={styles.notificationDot} />
+          <Bell size={22} color="#0F172A" />
+
+          <View className="absolute right-2 top-2 h-[9px] w-[9px] rounded-full border border-white bg-red-500" />
         </Pressable>
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 24,
-  },
-  brand: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  logo: {
-    width: 46,
-    height: 46,
-    borderRadius: 14,
-    backgroundColor: '#ECFDF3',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  logoEmoji: {
-    fontSize: 27,
-  },
-  brandText: {
-    flex: 1,
-  },
-  appName: {
-    fontSize: 21,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  tagline: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 3,
-  },
-  notificationButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    position: 'relative',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    marginLeft: 12,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 9,
-    height: 9,
-    borderRadius: 5,
-    backgroundColor: '#EF4444',
-    borderWidth: 1,
-    borderColor: '#FFFFFF',
-  },
-});
