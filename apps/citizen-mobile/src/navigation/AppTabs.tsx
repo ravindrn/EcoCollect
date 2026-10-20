@@ -6,9 +6,11 @@ import { ProfileScreen } from '../screens/ProfileScreen';
 import { ComplaintsScreen } from '../screens/ComplaintsScreen';
 import { NewComplaintScreen } from '../screens/NewComplaintScreen';
 import { colors } from '../theme/colors';
+import { LiveMapScreen } from '../screens/LiveMapScreen';
 
 export type AppTabsParamList = {
   Home: undefined;
+  LiveMap: undefined;
   Complaints: undefined;
   New: undefined;
   Profile: undefined;
@@ -20,6 +22,7 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 
 const ICONS: Record<keyof AppTabsParamList, [IoniconName, IoniconName]> = {
   Home: ['home-outline', 'home'],
+  LiveMap: ['map-outline', 'map'],
   Complaints: ['list-outline', 'list'],
   New: ['add-circle-outline', 'add-circle'],
   Profile: ['person-outline', 'person'],
@@ -58,6 +61,7 @@ export function AppTabs() {
       })}
     >
       <Tabs.Screen name="Home" component={HomeScreen} />
+      <Tabs.Screen name="LiveMap" component={LiveMapScreen} />
       <Tabs.Screen name="Complaints" component={ComplaintsScreen} />
       <Tabs.Screen name="New" component={NewComplaintScreen} />
       <Tabs.Screen name="Profile" component={ProfileScreen} />
