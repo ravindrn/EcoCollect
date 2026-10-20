@@ -1,4 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native';
+
+import { Text, View } from 'react-native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { PrimaryButton } from '../components/PrimaryButton';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,69 +15,82 @@ export function ProfileScreen() {
 
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initial}</Text>
+      <View className="mb-6 mt-4 items-center">
+        <View
+          className="mb-3 h-20 w-20 items-center justify-center rounded-full"
+          style={{ backgroundColor: colors.primary }}
+        >
+          <Text className="text-[34px] font-bold text-white">
+            {initial}
+          </Text>
         </View>
-        <Text style={styles.name}>{user?.fullName ?? 'EcoCollect Citizen'}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+
+        <Text
+          className="text-xl font-bold"
+          style={{ color: colors.textPrimary }}
+        >
+          {user?.fullName ?? 'EcoCollect Citizen'}
+        </Text>
+
+        <Text
+          className="mt-1 text-sm"
+          style={{ color: colors.textSecondary }}
+        >
+          {user?.email}
+        </Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Role</Text>
-        <Text style={styles.cardValue}>{user?.role}</Text>
+      <View
+        className="rounded-2xl border p-[18px]"
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        }}
+      >
+        <Text
+          className="mb-1 text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
+          Role
+        </Text>
 
-        <View style={styles.divider} />
+        <Text
+          className="mb-3.5 text-[15px]"
+          style={{ color: colors.textPrimary }}
+        >
+          {user?.role}
+        </Text>
 
-        <Text style={styles.cardLabel}>Account ID</Text>
-        <Text style={styles.mono}>{user?.id}</Text>
+        <View
+          className="my-3 h-px"
+          style={{ backgroundColor: colors.border }}
+        />
+
+        <Text
+          className="mb-1 text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
+          Account ID
+        </Text>
+
+        <Text
+          className="text-xs"
+          style={{
+            color: colors.textSecondary,
+            fontFamily: 'monospace',
+          }}
+        >
+          {user?.id}
+        </Text>
       </View>
 
-      <View style={styles.spacer} />
+      <View className="flex-1" />
 
-      <PrimaryButton title="Sign out" variant="ghost" onPress={signOut} />
+      <PrimaryButton
+        title="Sign out"
+        variant="ghost"
+        onPress={signOut}
+      />
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { alignItems: 'center', marginTop: 16, marginBottom: 24 },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  avatarText: { color: 'white', fontSize: 34, fontWeight: '700' },
-  name: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
-  email: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 16,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  cardLabel: {
-    fontSize: 12,
-    color: colors.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  cardValue: {
-    fontSize: 15,
-    color: colors.textPrimary,
-    marginBottom: 14,
-  },
-  mono: { fontFamily: 'monospace', fontSize: 12, color: colors.textSecondary },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.border,
-    marginVertical: 12,
-  },
-  spacer: { flex: 1 },
-});

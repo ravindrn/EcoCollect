@@ -1,6 +1,6 @@
+
 import {
   ActivityIndicator,
-  StyleSheet,
   Text,
   TouchableOpacity,
   TouchableOpacityProps,
@@ -22,25 +22,27 @@ export function PrimaryButton({
   ...rest
 }: Props) {
   const isPrimary = variant === 'primary';
+
   return (
     <TouchableOpacity
-      style={[
-        styles.base,
-        isPrimary ? styles.primary : styles.ghost,
-        (disabled || loading) && styles.disabled,
-        style,
-      ]}
+      className={`min-h-12 items-center justify-center rounded-[10px] py-[14px] ${
+        isPrimary
+          ? 'bg-emerald-600'
+          : 'border border-emerald-600 bg-transparent'
+      } ${(disabled || loading) ? 'opacity-60' : ''}`}
+      style={style}
       disabled={disabled || loading}
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={isPrimary ? 'white' : colors.primary} />
+        <ActivityIndicator
+          color={isPrimary ? 'white' : colors.primary}
+        />
       ) : (
         <Text
-          style={[
-            styles.text,
-            isPrimary ? styles.textPrimary : styles.textGhost,
-          ]}
+          className={`text-[15px] font-semibold ${
+            isPrimary ? 'text-white' : 'text-emerald-600'
+          }`}
         >
           {title}
         </Text>
@@ -48,23 +50,3 @@ export function PrimaryButton({
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    paddingVertical: 14,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
-  },
-  primary: { backgroundColor: colors.primary },
-  ghost: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: colors.primary,
-  },
-  disabled: { opacity: 0.6 },
-  text: { fontSize: 15, fontWeight: '600' },
-  textPrimary: { color: 'white' },
-  textGhost: { color: colors.primary },
-});

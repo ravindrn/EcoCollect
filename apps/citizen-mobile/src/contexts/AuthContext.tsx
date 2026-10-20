@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
   ReactNode,
-} from 'react';
+} from "react";
 import {
   AuthResult,
   AuthUser,
@@ -14,13 +14,9 @@ import {
   login as apiLogin,
   register as apiRegister,
   RegisterInput,
-} from '../services/auth';
-import {
-  clearToken,
-  getToken,
-  saveToken,
-} from '../services/tokenStorage';
-import { setUnauthorizedHandler } from '../services/http';
+} from "../services/auth";
+import { clearToken, getToken, saveToken } from "../services/tokenStorage";
+import { setUnauthorizedHandler } from "../services/http";
 
 type AuthState = {
   user: AuthUser | null;
@@ -60,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: me.email,
             role: me.role,
             fullName: me.profile?.fullName ?? null,
+            areaName: me.profile?.area?.name ?? null,
           });
         }
       } catch {
@@ -83,7 +80,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const applyAuthResult = useCallback(async (result: AuthResult) => {
     await saveToken(result.token);
-    setUser(result.user);
+
+    const me = await getMe();
+
+    setUser({
+      id: me.id,
+      email: me.email,
+      role: me.role,
+      fullName: me.profile?.fullName ?? null,
+      areaName: me.profile?.area?.name ?? null,
+    });
   }, []);
 
   const signIn = useCallback(
@@ -129,6 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
+  if (!ctx) throw new Error("useAuth must be used inside <AuthProvider>");
   return ctx;
 }

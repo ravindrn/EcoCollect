@@ -1,21 +1,33 @@
-import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { requireAuth } from '../middleware/auth.js';
-import { HttpError } from '../middleware/error.js';
+import { Router } from "express";
+import { prisma } from "../lib/prisma.js";
+import { requireAuth } from "../middleware/auth.js";
+import { HttpError } from "../middleware/error.js";
 
 export const usersRouter = Router();
 
-usersRouter.get('/me', requireAuth, async (req, res, next) => {
+usersRouter.get("/me", requireAuth, async (req, res, next) => {
   try {
     const userId = req.user?.id;
-    if (!userId) throw new HttpError(401, 'Not authenticated', 'UNAUTHORIZED');
+    if (!userId) throw new HttpError(401, "Not authenticated", "UNAUTHORIZED");
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { citizenProfile: true },
+
+      include: {
+        citizenProfile: {
+          include: {
+            area: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+      },
     });
 
-    if (!user) throw new HttpError(404, 'User not found', 'NOT_FOUND');
+    if (!user) throw new HttpError(404, "User not found", "NOT_FOUND");
 
     res.json({
       success: true,
@@ -25,12 +37,19 @@ usersRouter.get('/me', requireAuth, async (req, res, next) => {
         role: user.role,
         isActive: user.isActive,
         createdAt: user.createdAt,
+
         profile: user.citizenProfile
           ? {
               fullName: user.citizenProfile.fullName,
               phone: user.citizenProfile.phone,
               address: user.citizenProfile.address,
               wardDivision: user.citizenProfile.wardDivision,
+              area: user.citizenProfile.area
+                ? {
+                    id: user.citizenProfile.area.id,
+                    name: user.citizenProfile.area.name,
+                  }
+                : null,
             }
           : null,
       },

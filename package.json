@@ -1,3 +1,4 @@
+
 {
   "name": "ecocollect",
   "private": true,
@@ -12,5 +13,10 @@
     "backend:test": "pnpm --filter backend test",
     "backend:typecheck": "pnpm --filter backend typecheck",
     "mobile:start": "pnpm --filter citizen-mobile start"
+  },
+  "pnpm": {
+    "overrides": {
+      "lightningcss": "1.30.1"
+    }
   }
 }

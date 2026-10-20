@@ -7,9 +7,6 @@
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('CITIZEN', 'DRIVER', 'ADMIN');
 
--- DropTable
-DROP TABLE "health_checks";
-
 -- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL,
