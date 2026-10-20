@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { registerRootComponent } from 'expo'
 import { AppErrorBoundary } from './src/components/AppErrorBoundary'
+import  './src/i18n'
 
 import App from './App'
 

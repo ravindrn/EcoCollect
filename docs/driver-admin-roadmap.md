@@ -206,7 +206,7 @@ Figma [SWMSBP-40](https://ravindunadeesha.atlassian.net/browse/SWMSBP-40) is req
 
 ### 7. Driver can sign in
 
-- [ ] [SWMSBP-54](https://ravindunadeesha.atlassian.net/browse/SWMSBP-54)
+- [x] [SWMSBP-54](https://ravindunadeesha.atlassian.net/browse/SWMSBP-54)
 - Epic: SWMSBP-5. Difficulty: Medium. Depends on: tasks 6 and SWMSBP-40.
 
 Email and password with React Hook Form and Zod. Accept only role `DRIVER`. Store the token with task 6. A wrong role or bad password shows a clear message.

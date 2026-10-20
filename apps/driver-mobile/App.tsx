@@ -5,6 +5,8 @@ import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { z } from 'zod'
 import { env } from './src/config/env'
 import { login } from './src/services/auth'
+import { useTranslation  } from 'react-i18next'
+import { saveLanguage, type AppLanguage } from './src/i18n/language' 
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -23,6 +25,12 @@ export default function App() {
 
   const email = watch('email')
   const password = watch('password')
+  const { t, i18n } = useTranslation()
+
+  function chooseLanguage(language: AppLanguage) {
+    saveLanguage(language)
+    void i18n.changeLanguage(language)
+  }
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null)
@@ -46,13 +54,16 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Driver sign in</Text>
+      <Text style={styles.title}>{t('title')}</Text>
+      <Pressable onPress={() => chooseLanguage('en')}><Text>English</Text></Pressable>
+      <Pressable onPress={() => chooseLanguage('si')}><Text>සිංහල</Text></Pressable>
+      <Pressable onPress={() => chooseLanguage('ta')}><Text>தமிழ்</Text></Pressable>
       <TextInput
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={(value) => setValue('email', value)}
-        placeholder="Email"
+        placeholder={t('email')}
         style={styles.input}
       />
       <Text>{formState.errors.email?.message}</Text>
@@ -60,13 +71,13 @@ export default function App() {
         secureTextEntry
         value={password}
         onChangeText={(value) => setValue('password', value)}
-        placeholder="Password"
+        placeholder={t('password')}
         style={styles.input}
       />
       <Text>{formState.errors.password?.message}</Text>
       {formError ? <Text>{formError}</Text> : null}
       <Pressable onPress={onSubmit} style={styles.button}>
-        <Text style={styles.buttonText}>Sign in</Text>
+      <Text style={styles.buttonText}>{t('signIn')}</Text>
       </Pressable>
     </View>
   )
