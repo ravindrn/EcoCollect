@@ -35,6 +35,7 @@ type Announcement = {
 
 type CommunityUpdate = {
   id: string;
+  userId: string;
   content: string;
   authorName: string;
   createdAt: string;
@@ -140,6 +141,14 @@ export function HomeScreen() {
   const [commentError, setCommentError] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [postingComment, setPostingComment] = useState(false);
+
+  const [editingUpdate, setEditingUpdate] = useState<CommunityUpdate | null>(
+    null,
+  );
+
+  const [editedContent, setEditedContent] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingUpdateId, setDeletingUpdateId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -361,6 +370,105 @@ export function HomeScreen() {
       setPostingComment(false);
     }
   }
+
+  const handleStartEdit = (item: CommunityUpdate) => {
+    setEditingUpdate(item);
+    setEditedContent(item.content);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingUpdate || !editedContent.trim()) {
+      Alert.alert("Required", "Please enter your update.");
+      return;
+    }
+
+    try {
+      setSavingEdit(true);
+
+      const updated = await api.patch<CommunityUpdate>(
+        `/community-updates/${editingUpdate.id}`,
+        { content: editedContent.trim() },
+        { auth: true },
+      );
+
+      setCommunityUpdates((previous) =>
+        previous.map((item) => (item.id === updated.id ? updated : item)),
+      );
+
+      setEditingUpdate(null);
+      setEditedContent("");
+      Alert.alert("Success", "Your update has been edited.");
+    } catch (error) {
+      Alert.alert("Error", "Unable to edit this update. Please try again.");
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const confirmDelete = (message: string): Promise<boolean> => {
+    if (Platform.OS === "web") {
+      return Promise.resolve(window.confirm(message));
+    }
+
+    return new Promise((resolve) => {
+      Alert.alert("Delete Update", message, [
+        {
+          text: "Cancel",
+          style: "cancel",
+          onPress: () => resolve(false),
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => resolve(true),
+        },
+      ]);
+    });
+  };
+
+  const handleDeleteUpdate = async (item: CommunityUpdate) => {
+    const confirmed = await confirmDelete(
+      "Are you sure you want to delete this update? Its comments and helpful reactions will also be deleted.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingUpdateId(item.id);
+
+      await api.delete(`/community-updates/${item.id}`, { auth: true });
+
+      setCommunityUpdates((previous) =>
+        previous.filter((update) => update.id !== item.id),
+      );
+
+      if (selectedUpdate?.id === item.id) {
+        setSelectedUpdate(null);
+        setComments([]);
+      }
+
+      if (Platform.OS === "web") {
+        window.alert("Update deleted successfully.");
+      } else {
+        Alert.alert("Success", "Update deleted successfully.");
+      }
+    } catch (error) {
+      console.error("Delete API error:", error);
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to delete this update. Please try again.";
+
+      if (Platform.OS === "web") {
+        window.alert(`Delete failed: ${message}`);
+      } else {
+        Alert.alert("Delete Failed", message);
+      }
+    } finally {
+      setDeletingUpdateId(null);
+    }
+  };
 
   return (
     <ScreenContainer scroll={true}>
@@ -759,6 +867,36 @@ export function HomeScreen() {
                       💬 Comments ({item.commentCount})
                     </Text>
                   </Pressable>
+
+                  {item.userId === user?.id && (
+                    <>
+                      <Pressable
+                        className="rounded-full border border-blue-200 bg-blue-50 px-3.5 py-2"
+                        onPress={() => handleStartEdit(item)}
+                      >
+                        <Text className="text-[13px] font-semibold text-blue-700">
+                          ✏️ Edit
+                        </Text>
+                      </Pressable>
+
+                      <Pressable
+                        className="rounded-full border border-red-200 bg-red-50 px-3.5 py-2"
+                        onPress={() => {
+                          console.log("Delete button clicked:", item.id);
+                          handleDeleteUpdate(item);
+                        }}
+                        disabled={deletingUpdateId === item.id}
+                      >
+                        {deletingUpdateId === item.id ? (
+                          <ActivityIndicator color="#DC2626" size="small" />
+                        ) : (
+                          <Text className="text-[13px] font-semibold text-red-600">
+                            🗑️ Delete
+                          </Text>
+                        )}
+                      </Pressable>
+                    </>
+                  )}
                 </View>
               </View>
             ))
@@ -941,6 +1079,57 @@ export function HomeScreen() {
             </Text>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+      <Modal
+        visible={editingUpdate !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditingUpdate(null)}
+      >
+        <View className="flex-1 justify-center bg-black/50 px-5">
+          <View className="rounded-3xl bg-white p-5">
+            <Text className="text-xl font-extrabold text-slate-900">
+              Edit Update
+            </Text>
+
+            <TextInput
+              className="mt-4 min-h-[140px] rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-slate-800"
+              value={editedContent}
+              onChangeText={setEditedContent}
+              placeholder="Edit your update..."
+              placeholderTextColor="#94A3B8"
+              multiline
+              maxLength={1000}
+              textAlignVertical="top"
+            />
+
+            <Text className="mt-2 text-right text-xs text-slate-400">
+              {editedContent.length}/1000
+            </Text>
+
+            <View className="mt-4 flex-row gap-3">
+              <Pressable
+                className="flex-1 items-center rounded-2xl bg-gray-100 px-4 py-3"
+                onPress={() => setEditingUpdate(null)}
+                disabled={savingEdit}
+              >
+                <Text className="font-bold text-slate-700">Cancel</Text>
+              </Pressable>
+
+              <Pressable
+                className="flex-1 items-center rounded-2xl bg-emerald-600 px-4 py-3"
+                onPress={handleSaveEdit}
+                disabled={savingEdit}
+              >
+                {savingEdit ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text className="font-bold text-white">Save Changes</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
       </Modal>
     </ScreenContainer>
   );
