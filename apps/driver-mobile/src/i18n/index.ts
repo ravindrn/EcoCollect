@@ -2,6 +2,7 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import { readLanguage } from './language'
 
+
 const resources = {
     en: {
     translation: {
@@ -14,6 +15,9 @@ const resources = {
         inboxTitle: 'Notices',
         inboxEmpty: 'No published notices',
         inboxError: 'Could not load notices',
+        profileTitle: 'Profile',
+        profileMissing: 'No profile details yet',
+        signOut: 'Sign out',
       },
 },
 si: {
@@ -27,6 +31,9 @@ si: {
         inboxTitle: 'නිවේදන',
         inboxEmpty: 'ප්‍රකාශිත නිවේදන නැත',
         inboxError: 'නිවේදන පූරණය කළ නොහැක',
+        profileTitle: 'පැතිකඩ',
+        profileMissing: 'ප්‍රෝෆිලි විස්තර නැත',
+        signOut: 'ඉවත් කිරීම',
       },
 },
 ta: {
@@ -40,6 +47,9 @@ ta: {
       inboxTitle: 'அறிவிப்புகள்',
       inboxEmpty: 'வெளியிடப்பட்ட அறிவிப்புகள் இல்லை',
       inboxError: 'அறிவிப்புகளை ஏற்ற முடியவில்லை',
+      profileTitle: 'சுயவிவரம்',
+      profileMissing: 'சுயவிவர விவரங்கள் இல்லை',
+      signOut: 'வெளியேறு',
     },
 },
 }

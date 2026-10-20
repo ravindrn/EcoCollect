@@ -11,6 +11,8 @@ import {
   getPublishedAnnouncements,
   type Announcement,
  } from './src/services/announcements'
+import { getMyProfile, type DriverProfile } from './src/services/profile'
+import { clearToken } from './src/services/session'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -32,6 +34,8 @@ export default function App() {
   const { t, i18n } = useTranslation()
   const [notices, setNotices] = useState<Announcement[]>([])
   const [noticeError, setNoticeError] = useState<string | null>(null)
+  const [profile, setProfile] = useState<DriverProfile | null>(null)
+  const [profileError, setProfileError] = useState<string | null>(null)
 
   function chooseLanguage(language: AppLanguage) {
     saveLanguage(language)
@@ -43,6 +47,12 @@ export default function App() {
     getPublishedAnnouncements()
     .then(setNotices)
     .catch(() => setNoticeError(t('inboxError')))
+
+    getMyProfile()
+    .then(setProfile)
+    .catch((error: unknown) =>
+       setProfileError(error instanceof Error ? error.message : t('inboxError')),
+    )
   }, [signedIn, t])
 
   const onSubmit = handleSubmit(async (values) => {
@@ -59,7 +69,7 @@ export default function App() {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>{t('shellTitle')}</Text>
-        <Text>{t('Signed in')}</Text>
+        <Text>{t('signedIn')}</Text>
         <Text style={styles.title}>{t('inboxTitle')}</Text>
         {noticeError ? <Text>{noticeError}</Text> : null}
         {notices.length === 0 ? <Text>{t('inboxEmpty')}</Text> : null}
@@ -67,8 +77,25 @@ export default function App() {
           <View key={notice.id}>
           <Text>{notice.title}</Text>
           <Text>{notice.description}</Text>
+
         </View>
       ))}
+      <Text style={styles.title}>{t('profileTitle')}</Text>
+      {profileError ? <Text>{profileError}</Text> : null}
+      {profile ? <Text>{profile.email}</Text> : null}
+      {profile ? <Text>{profile.role}</Text> : null}
+      {profile && !profile.profile ? <Text>{t('profileMissing')}</Text> : null}
+      <Pressable
+        onPress={() => {
+        void clearToken()
+        setSignedIn(false)
+        setNotices([])
+        setProfile(null)
+      }}
+      style={styles.button}
+>
+  <Text style={styles.buttonText}>{t('signOut')}</Text>
+</Pressable>
       </View>
     )
   }
