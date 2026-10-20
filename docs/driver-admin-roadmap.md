@@ -225,7 +225,7 @@ Verify:
 
 ### 8. English, Sinhala, and Tamil
 
-- [ ] [SWMSBP-55](https://ravindunadeesha.atlassian.net/browse/SWMSBP-55)
+- [x] [SWMSBP-55](https://ravindunadeesha.atlassian.net/browse/SWMSBP-55)
 - Epic: SWMSBP-5. Difficulty: Medium. Depends on: task 7.
 
 i18next. The choice is saved and available on the login screen and in settings. Every later driver string goes through the translation files.

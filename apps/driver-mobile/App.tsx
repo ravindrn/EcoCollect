@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
@@ -7,6 +7,10 @@ import { env } from './src/config/env'
 import { login } from './src/services/auth'
 import { useTranslation  } from 'react-i18next'
 import { saveLanguage, type AppLanguage } from './src/i18n/language' 
+import { 
+  getPublishedAnnouncements,
+  type Announcement,
+ } from './src/services/announcements'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -26,11 +30,20 @@ export default function App() {
   const email = watch('email')
   const password = watch('password')
   const { t, i18n } = useTranslation()
+  const [notices, setNotices] = useState<Announcement[]>([])
+  const [noticeError, setNoticeError] = useState<string | null>(null)
 
   function chooseLanguage(language: AppLanguage) {
     saveLanguage(language)
     void i18n.changeLanguage(language)
   }
+  
+  useEffect(() => {
+    if(!signedIn) return
+    getPublishedAnnouncements()
+    .then(setNotices)
+    .catch(() => setNoticeError(t('inboxError')))
+  }, [signedIn, t])
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null)
@@ -45,9 +58,17 @@ export default function App() {
   if (signedIn) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>EcoCollect Driver</Text>
-        <Text>Signed in</Text>
-        <Text>API base: {env.apiBaseUrl}</Text>
+        <Text style={styles.title}>{t('shellTitle')}</Text>
+        <Text>{t('Signed in')}</Text>
+        <Text style={styles.title}>{t('inboxTitle')}</Text>
+        {noticeError ? <Text>{noticeError}</Text> : null}
+        {notices.length === 0 ? <Text>{t('inboxEmpty')}</Text> : null}
+        {notices.map((notice) => (
+          <View key={notice.id}>
+          <Text>{notice.title}</Text>
+          <Text>{notice.description}</Text>
+        </View>
+      ))}
       </View>
     )
   }

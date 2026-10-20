@@ -11,6 +11,9 @@ const resources = {
         signIn: 'Sign in',
         signedIn: 'Signed in',
         shellTitle: 'EcoCollect Driver',
+        inboxTitle: 'Notices',
+        inboxEmpty: 'No published notices',
+        inboxError: 'Could not load notices',
       },
 },
 si: {
@@ -21,6 +24,9 @@ si: {
         signIn: 'පිවිසෙන්න',
         signedIn: 'පිවිස ඇත',
         shellTitle: 'ඉකොකලෙක්ට් රියදුරු',
+        inboxTitle: 'නිවේදන',
+        inboxEmpty: 'ප්‍රකාශිත නිවේදන නැත',
+        inboxError: 'නිවේදන පූරණය කළ නොහැක',
       },
 },
 ta: {
@@ -31,6 +37,9 @@ ta: {
       signIn: 'உள்நுழை',
       signedIn: 'உள்நுழைந்தது',
       shellTitle: 'எக்கோகலெக்ட் ஓட்டுநர்',
+      inboxTitle: 'அறிவிப்புகள்',
+      inboxEmpty: 'வெளியிடப்பட்ட அறிவிப்புகள் இல்லை',
+      inboxError: 'அறிவிப்புகளை ஏற்ற முடியவில்லை',
     },
 },
 }
