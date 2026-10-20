@@ -11,9 +11,12 @@
   },
   "dependencies": {
     "@ecocollect/api-contracts": "workspace:*",
+    "@hookform/resolvers": "^6.0.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router": "^8.5.0"
+    "react-hook-form": "^7.90.0",
+    "react-router": "^8.5.0",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

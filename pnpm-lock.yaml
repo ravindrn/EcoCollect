@@ -16,15 +16,24 @@ importers:
       '@ecocollect/api-contracts':
         specifier: workspace:*
         version: link:../../packages/api-contracts
+      '@hookform/resolvers':
+        specifier: ^6.0.0
+        version: 6.0.0(@sinclair/typebox@0.27.12)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.90.0(@types/react@19.2.18)(react@19.3.1))(valibot@1.4.2(typescript@6.0.3))(zod@3.25.76)
       react:
         specifier: ^19.2.8
         version: 19.3.1
       react-dom:
         specifier: ^19.2.8
         version: 19.3.1(react@19.3.1)
+      react-hook-form:
+        specifier: ^7.90.0
+        version: 7.90.0(@types/react@19.2.18)(react@19.3.1)
       react-router:
         specifier: ^8.5.0
         version: 8.5.0(@types/react-dom@19.3.0(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -6143,6 +6152,17 @@ snapshots:
       valibot: 1.4.2(typescript@6.0.3)
       zod: 3.25.76
 
+  '@hookform/resolvers@6.0.0(@sinclair/typebox@0.27.12)(@standard-schema/spec@1.1.0)(ajv@8.20.0)(react-hook-form@7.90.0(@types/react@19.2.18)(react@19.3.1))(valibot@1.4.2(typescript@6.0.3))(zod@3.25.76)':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.90.0(@types/react@19.2.18)(react@19.3.1)
+    optionalDependencies:
+      '@sinclair/typebox': 0.27.12
+      '@standard-schema/spec': 1.1.0
+      ajv: 8.20.0
+      valibot: 1.4.2(typescript@6.0.3)
+      zod: 3.25.76
+
   '@humanfs/core@0.19.2':
     dependencies:
       '@humanfs/types': 0.15.0
@@ -9495,6 +9515,12 @@ snapshots:
   react-hook-form@7.90.0(@types/react@19.2.18)(react@19.2.3):
     dependencies:
       react: 19.2.3
+    optionalDependencies:
+      '@types/react': 19.2.18
+
+  react-hook-form@7.90.0(@types/react@19.2.18)(react@19.3.1):
+    dependencies:
+      react: 19.3.1
     optionalDependencies:
       '@types/react': 19.2.18
 
