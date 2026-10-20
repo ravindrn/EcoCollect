@@ -1,49 +1,48 @@
-import { StyleSheet, Text, View } from 'react-native';
+
+import { Text, View } from 'react-native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { colors } from '../theme/colors';
 
 export function NewComplaintScreen() {
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <Text style={styles.title}>New complaint</Text>
-        <Text style={styles.subtitle}>
+      <View className="mb-5 mt-3">
+        <Text
+          className="text-[26px] font-bold"
+          style={{ color: colors.textPrimary }}
+        >
+          New complaint
+        </Text>
+
+        <Text
+          className="mt-1 text-sm"
+          style={{ color: colors.textSecondary }}
+        >
           Report a waste-related problem in your area
         </Text>
       </View>
 
-      <View style={styles.placeholder}>
-        <Text style={styles.placeholderTitle}>Coming soon</Text>
-        <Text style={styles.placeholderBody}>
+      <View
+        className="items-center rounded-2xl border p-5"
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        }}
+      >
+        <Text
+          className="mb-1.5 text-base font-bold"
+          style={{ color: colors.textPrimary }}
+        >
+          Coming soon
+        </Text>
+
+        <Text
+          className="text-center text-[13px] leading-5"
+          style={{ color: colors.textSecondary }}
+        >
           Pick a category, add a photo, and share your location.
         </Text>
       </View>
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { marginTop: 12, marginBottom: 20 },
-  title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
-  subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
-  placeholder: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-  },
-  placeholderTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 6,
-  },
-  placeholderBody: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-});

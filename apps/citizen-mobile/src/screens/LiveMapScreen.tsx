@@ -1,35 +1,26 @@
 
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { colors } from '../theme/colors';
 
 export function LiveMapScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Live Map</Text>
-      <Text style={styles.subtitle}>
+    <View
+      className="flex-1 items-center justify-center p-5"
+      style={{ backgroundColor: colors.background }}
+    >
+      <Text
+        className="mb-2 text-2xl font-bold"
+        style={{ color: colors.primary }}
+      >
+        Live Map
+      </Text>
+
+      <Text
+        className="text-center text-sm"
+        style={{ color: colors.textMuted }}
+      >
         Track waste collection vehicles in real time.
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textMuted,
-    textAlign: 'center',
-  },
-});
