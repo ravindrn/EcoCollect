@@ -1,25 +1,28 @@
 # Driver App and Admin Dashboard Roadmap
 
 Owner: Mahela Yapa  
-Priority: Driver app first. Admin dashboard second, and only when explicitly requested.  
+Responsibilities: Driver app, and the Admin dashboard except user management.  
+User management: another teammate. Do not build the admin users list, user create/edit screens, or `apps/admin-web/src/pages/UsersPage.tsx`.  
 Driver branch: `feature/driver-app`  
 Admin branch: `feature/admin-dashboard`  
-Existing combined branch: `feature/mahela-driver-admin` stays as history. Do not add new work to it.  
+Integration branch: `feature/mahela-driver-admin`  
 Apps: `apps/driver-mobile`, `apps/admin-web`  
 Window: 15 Oct 2026 to 31 Dec 2026. Review path aimed at 18 Dec 2026.  
 Jira: [SWMSBP-5](https://ravindunadeesha.atlassian.net/browse/SWMSBP-5) Driver & Collection App, [SWMSBP-6](https://ravindunadeesha.atlassian.net/browse/SWMSBP-6) Admin Web Dashboard.
 
-Each task below is marked **Driver** or **Admin**. Do the next open Driver task. Leave Admin tasks until Driver work is blocked or you ask for an Admin task. Check a box only after the Verify steps pass and the "Done when" line is true.
+Each task below is marked **Driver** or **Admin**. Build Driver tasks on `feature/driver-app`. Build Mahela's Admin tasks on `feature/admin-dashboard`. Combine those branches with the teammate's user-management branch only on `feature/mahela-driver-admin`. Check a box only after the Verify steps pass and the "Done when" line is true.
 
 Shared setup tasks are Jira children of the Driver epic and are linked to the Admin epic. User-facing work is a Jira Story. Setup and polish work is a Jira Task. Jira subtasks cannot sit directly on an epic.
 
 ## How to work
 
-1. Driver work goes on `feature/driver-app`. Admin work goes on `feature/admin-dashboard`. Never commit both apps on the same new branch.
-2. Build only the next unchecked Driver task, unless an Admin task was requested.
-3. Call the real backend for auth, users, areas, announcements, and community updates. Leave Prisma, the citizen app, the AI services, and the ESP32 to the rest of the team.
-4. On this machine `pnpm` is not on PATH. Run package scripts with `corepack pnpm --filter <package> <script>`.
-5. Run that task's Verify steps. Keep the command output or a screenshot until the box is checked.
+1. Driver commits go on `feature/driver-app` and should stay inside `apps/driver-mobile`.
+2. Mahela's admin commits go on `feature/admin-dashboard` and should stay inside `apps/admin-web`, except a shared contract change.
+3. Do not build admin user management. Leave `apps/admin-web/src/pages/UsersPage.tsx` for the teammate. When the admin layout gains a Users link, point it at that one file and do not keep editing it.
+4. `feature/mahela-driver-admin` is the integration branch. Use it when merging finished Driver work, finished Admin work, and the teammate's user-management branch. Do not start a new screen there.
+5. Call the real backend for auth, users, areas, announcements, and community updates. Leave Prisma, the citizen app, the AI services, and the ESP32 to the rest of the team.
+6. On this machine `pnpm` is not on PATH. Run package scripts with `corepack pnpm --filter <package> <script>`.
+7. Run that task's Verify steps. Keep the command output or a screenshot until the box is checked.
 
 ## Build order after the backend merge
 
@@ -35,20 +38,58 @@ The `ishara` branch is merged into `feature/mahela-driver-admin`. The backend no
 
 There is still no tractor, route, GPS, bin, weight, or engine data in the database. Those screens stay typed and behind the fixture flag. Build them only after that data exists, so the remaining work is connecting the screens to the new endpoints.
 
-### Driver, do these next
+### Driver, already on `feature/driver-app`
 
 1. Task 8. English, Sinhala, and Tamil. **Driver**
 2. Driver inbox for published announcements from `GET /api/v1/announcements`. **Driver**
 3. Driver profile from `GET /api/v1/users/me`. **Driver**
+4. Driver sign-out. **Driver**
 
-### Admin, only when asked
+### Admin, on `feature/admin-dashboard`
+
+These are Mahela's admin screens. User management is not in this list.
 
 1. Task 17. Admin layout. **Admin**
 2. Task 18. Admin login. **Admin**
 3. Admin areas list from `GET /api/v1/areas`. **Admin**
 4. Task 22. Admin creates and publishes announcements. **Admin**
-5. Admin user list. **Admin**
-6. Admin view of community updates. **Admin**
+5. Admin view of community updates. **Admin**
+
+### Teammate, not this roadmap
+
+Admin user management: list, create, edit, and disable users. That work stays on the teammate's branch until it is merged into `feature/mahela-driver-admin`.
+
+## Branches, pull, and merge
+
+`feature/driver-app` and `feature/admin-dashboard` were created from `feature/mahela-driver-admin`. Keep making commits on those two branches. The integration branch is where the three lines of work meet.
+
+When the backend branch has new commits, update the integration branch first, then update the branch you are working on:
+
+```powershell
+git checkout feature/mahela-driver-admin
+git pull origin feature/mahela-driver-admin
+git merge origin/ishara
+git checkout feature/driver-app
+git merge feature/mahela-driver-admin
+```
+
+Use `feature/admin-dashboard` instead of `feature/driver-app` when the new backend commits are needed for admin work.
+
+When a Driver slice is finished and pushed:
+
+```powershell
+git checkout feature/driver-app
+git push -u origin HEAD
+git checkout feature/mahela-driver-admin
+git merge feature/driver-app
+git push origin HEAD
+```
+
+When Mahela's admin slice is finished, use the same steps with `feature/admin-dashboard`.
+
+When the teammate's user-management branch is ready, merge only that branch into `feature/mahela-driver-admin`. Do not merge it into `feature/admin-dashboard` while admin screens are still being built. The expected overlap is `apps/admin-web/src/App.tsx` and `apps/admin-web/src/layout/AdminLayout.tsx`. Keep the Users route and the `UsersPage.tsx` file stable so that merge stays small.
+
+`package.json` and `pnpm-lock.yaml` can conflict on every merge. Resolve them by keeping both sides' dependencies, then run `corepack pnpm install` and commit the regenerated lockfile.
 
 ### Wait for GPS and bin data
 
