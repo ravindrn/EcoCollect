@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { TextField } from '../components/TextField';
@@ -34,16 +35,34 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <ScreenContainer>
-      <View style={styles.header}>
-        <View style={styles.logo}>
-          <Text style={styles.logoEmoji}>🌿</Text>
+      <View className="mb-7 mt-6 items-center">
+        <View className="mb-3 h-[68px] w-[68px] items-center justify-center rounded-[22px] border border-green-200 bg-[#ECFDF3]">
+          <Text className="text-[32px]">🌿</Text>
         </View>
-        <Text style={styles.brand}>EcoCollect</Text>
-        <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to manage your pickups</Text>
+
+        <Text
+          className="mb-[18px] text-sm font-bold"
+          style={{ color: colors.primary }}
+        >
+          EcoCollect
+        </Text>
+
+        <Text className="text-[28px] font-extrabold text-slate-900">
+          Welcome back
+        </Text>
+
+        <Text className="mt-1.5 text-center text-sm text-slate-500">
+          Sign in to manage your pickups
+        </Text>
       </View>
 
-      <View style={styles.card}>
+      <View
+        className="rounded-[20px] border p-[18px]"
+        style={{
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        }}
+      >
         <TextField
           label="Email"
           value={email}
@@ -65,8 +84,13 @@ export function LoginScreen({ navigation }: Props) {
         />
 
         {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.error}>{error}</Text>
+          <View className="mb-3.5 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2.5">
+            <Text
+              className="text-[13px] leading-[18px]"
+              style={{ color: colors.error }}
+            >
+              {error}
+            </Text>
           </View>
         ) : null}
 
@@ -78,10 +102,17 @@ export function LoginScreen({ navigation }: Props) {
         />
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>New here? </Text>
+      <View className="mb-3 mt-6 flex-row justify-center">
         <Text
-          style={styles.link}
+          className="text-sm"
+          style={{ color: colors.textSecondary }}
+        >
+          New here?{' '}
+        </Text>
+
+        <Text
+          className="text-sm font-bold"
+          style={{ color: colors.primary }}
           onPress={() => navigation.navigate('Register')}
         >
           Create an account
@@ -90,57 +121,3 @@ export function LoginScreen({ navigation }: Props) {
     </ScreenContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { marginTop: 24, marginBottom: 28, alignItems: 'center' },
-  logo: {
-    width: 68,
-    height: 68,
-    borderRadius: 22,
-    backgroundColor: '#ECFDF3',
-    borderWidth: 1,
-    borderColor: '#BBF7D0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  logoEmoji: { fontSize: 32 },
-  brand: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 18,
-  },
-  title: { fontSize: 28, fontWeight: '800', color: colors.textPrimary },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  errorBox: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 14,
-  },
-  error: { color: colors.error, fontSize: 13, lineHeight: 18 },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 24,
-    marginBottom: 12,
-  },
-  footerText: { color: colors.textSecondary, fontSize: 14 },
-  link: { color: colors.primary, fontWeight: '700', fontSize: 14 },
-});
