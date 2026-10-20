@@ -27,6 +27,7 @@ model User {
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   citizenProfile CitizenProfile?
+  complaints     Complaint[] 
 
   communityUpdates CommunityUpdate[]
   communityReactions CommunityReaction[]
@@ -151,4 +152,41 @@ model Announcement {
 
   @@index([status, publishedAt])
   @@map("announcements")
+}
+
+enum ComplaintCategory {
+  OVERFLOW
+  MISSED_PICKUP
+  ILLEGAL_DUMPING
+  BURNING
+  DAMAGED_BIN
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+model Complaint {
+  id          String            @id @default(uuid()) @db.Uuid
+  reporterId  String            @map("reporter_id") @db.Uuid
+  category    ComplaintCategory
+  status      ComplaintStatus   @default(OPEN)
+  description String
+  photoUrl    String?           @map("photo_url")
+  latitude    Float?
+  longitude   Float?
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+  @@map("complaints")
 }

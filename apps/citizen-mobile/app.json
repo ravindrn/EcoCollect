@@ -25,7 +25,7 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-  "apiBaseUrl": "http://172.20.10.6:4000/api/v1"
+  "apiBaseUrl": "http://10.48.35.124:4000/api/v1"
 }
   }
 }

@@ -1,6 +1,5 @@
-
-import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { TextField } from '../components/TextField';
@@ -12,22 +11,64 @@ import type { AuthStackParamList } from '../navigation/AuthStack';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export function LoginScreen({ navigation }: Props) {
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function LoginScreen({ route, navigation }: Props) {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const params = (route.params ?? {}) as {
+    justRegistered?: boolean;
+    email?: string;
+  };
+
+  useEffect(() => {
+    if (params.justRegistered) {
+      setSuccessMessage('Account created. Please sign in.');
+      if (params.email) setEmail(params.email);
+    }
+  }, [params.justRegistered, params.email]);
+
+  const validate = () => {
+    const errors: { email?: string; password?: string } = {};
+    if (!email.trim()) {
+      errors.email = 'Please enter your email.';
+    } else if (!EMAIL_REGEX.test(email.trim())) {
+      errors.email = 'Enter a valid email address.';
+    }
+    if (!password) {
+      errors.password = 'Please enter your password.';
+    }
+    return errors;
+  };
+
   const handleLogin = async () => {
-    setError(null);
+    setGeneralError(null);
+    setSuccessMessage(null);
+
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setLoading(true);
     try {
       await signIn(email.trim(), password);
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : 'Unable to sign in';
-      setError(message);
+      if (err instanceof ApiError && err.status === 401) {
+        setGeneralError('Incorrect email or password. Please try again.');
+      } else if (err instanceof ApiError) {
+        setGeneralError(err.message);
+      } else {
+        setGeneralError('Unable to sign in. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -35,84 +76,63 @@ export function LoginScreen({ navigation }: Props) {
 
   return (
     <ScreenContainer>
-      <View className="mb-7 mt-6 items-center">
-        <View className="mb-3 h-[68px] w-[68px] items-center justify-center rounded-[22px] border border-green-200 bg-[#ECFDF3]">
-          <Text className="text-[32px]">🌿</Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>Sign in to EcoCollect</Text>
+      </View>
+
+      {successMessage ? (
+        <View style={styles.successBox}>
+          <Text style={styles.success}>{successMessage}</Text>
         </View>
+      ) : null}
 
-        <Text
-          className="mb-[18px] text-sm font-bold"
-          style={{ color: colors.primary }}
-        >
-          EcoCollect
-        </Text>
-
-        <Text className="text-[28px] font-extrabold text-slate-900">
-          Welcome back
-        </Text>
-
-        <Text className="mt-1.5 text-center text-sm text-slate-500">
-          Sign in to manage your pickups
-        </Text>
-      </View>
-
-      <View
-        className="rounded-[20px] border p-[18px]"
-        style={{
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
+      <TextField
+        label="Email"
+        value={email}
+        onChangeText={(v) => {
+          setEmail(v);
+          if (fieldErrors.email) {
+            setFieldErrors((prev) => ({ ...prev, email: undefined }));
+          }
         }}
-      >
-        <TextField
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          textContentType="emailAddress"
-          placeholder="you@example.com"
-        />
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="you@example.com"
+        error={fieldErrors.email}
+      />
 
-        <TextField
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          textContentType="password"
-          placeholder="••••••••"
-        />
+      <TextField
+        label="Password"
+        value={password}
+        onChangeText={(v) => {
+          setPassword(v);
+          if (fieldErrors.password) {
+            setFieldErrors((prev) => ({ ...prev, password: undefined }));
+          }
+        }}
+        secureTextEntry
+        placeholder="••••••••"
+        error={fieldErrors.password}
+      />
 
-        {error ? (
-          <View className="mb-3.5 rounded-[10px] border border-red-200 bg-red-50 px-3 py-2.5">
-            <Text
-              className="text-[13px] leading-[18px]"
-              style={{ color: colors.error }}
-            >
-              {error}
-            </Text>
-          </View>
-        ) : null}
+      {generalError ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.error}>{generalError}</Text>
+        </View>
+      ) : null}
 
-        <PrimaryButton
-          title="Sign in"
-          onPress={handleLogin}
-          loading={loading}
-          disabled={!email || !password}
-        />
-      </View>
+      <PrimaryButton
+        title="Sign in"
+        onPress={handleLogin}
+        loading={loading}
+      />
 
-      <View className="mb-3 mt-6 flex-row justify-center">
+      <View style={styles.footer}>
+        <Text style={styles.footerText}>New here? </Text>
         <Text
-          className="text-sm"
-          style={{ color: colors.textSecondary }}
-        >
-          New here?{' '}
-        </Text>
-
-        <Text
-          className="text-sm font-bold"
-          style={{ color: colors.primary }}
+          style={styles.link}
           onPress={() => navigation.navigate('Register')}
         >
           Create an account
@@ -121,3 +141,36 @@ export function LoginScreen({ navigation }: Props) {
     </ScreenContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  header: { marginTop: 16, marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
+  subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+  successBox: {
+    backgroundColor: '#ECFDF3',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  success: { color: colors.success, fontSize: 13, lineHeight: 18 },
+  errorBox: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+  },
+  error: { color: colors.error, fontSize: 13, lineHeight: 18 },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  footerText: { color: colors.textSecondary },
+  link: { color: colors.primary, fontWeight: '600' },
+});
