@@ -5,6 +5,8 @@ export default function AdminLayout() {
         <div>
             <nav>
                 <Link to="/">Home</Link>
+                <br />
+                <Link to="/areas">Areas</Link>
             </nav>
             <Outlet/>
         </div>
