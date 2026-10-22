@@ -31,6 +31,12 @@ export default function AnnouncementsPage() {
         }
     }
 
+    function usePolytheneTemplate() {
+      setTitle('Polythene collection day')
+      setDescription('Leave clean polythene out for collection on the scheduled day.')
+      setError(null)
+    }
+
     async function onPublish() {
         if (!draft) return
         setError(null)
@@ -59,6 +65,9 @@ export default function AnnouncementsPage() {
           onChange={(event) => setDescription(event.target.value)}
         />
       </label>
+      <button type="button" onClick={usePolytheneTemplate}>
+        Use polythene-day template
+      </button>
       <button type="button" onClick={() => void onCreate()}>
         Create draft
       </button>
