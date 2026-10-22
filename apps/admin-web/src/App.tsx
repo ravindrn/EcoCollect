@@ -4,16 +4,18 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import RequireAdmin from './routes/RequireAdmin'
 import AreasPage from './pages/AreasPage'
+import AnnouncementsPage from './pages/AnnouncementsPage'
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter> 
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<RequireAdmin />}>
           <Route element={<AdminLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/areas" element={<AreasPage />} />
+            <Route path="/announcements" element={<AnnouncementsPage />} />
           </Route>
         </Route>
       </Routes>
