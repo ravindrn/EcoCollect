@@ -124,16 +124,16 @@ export default function App() {
       ))}
 
       <Text style={styles.title}>{t('routeTitle')}</Text>
-        {route ? (
+        {!profile && !profileError ? <Text>{t('routeLoading')}</Text> : null}
+        {profile && route ? (
           <View>
             <Text>{route.routeName}</Text>
             <Text>{t('routeTractor')}: {route.tractorName}</Text>
             <Text>{route.plannedStart}–{route.plannedEnd}</Text>
             <Text>{t('routeStops')}: {route.stopCount}</Text>
           </View>
-        ) : (
-        <Text>{t('routeEmpty')}</Text>
-        )}
+        ) : null}
+        {profile && !route ? <Text>{t('routeEmpty')}</Text> : null}
 
       <Text style={styles.title}>{t('weightTitle')}</Text>
       <Text>{t('weightLimit')}: 30 kg</Text>

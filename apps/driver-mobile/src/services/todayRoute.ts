@@ -4,6 +4,8 @@ const seedDriverIds: Record<string , string> = {
     'driver@ecocollect.local' : 'user-driver-1',
 }
 
+const weekdayByIndex = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const
+
 export type TodayRoute = {
     routeName: string
     tractorName: string
@@ -12,7 +14,7 @@ export type TodayRoute = {
     stopCount: number
 }
 
-export function todayRouteForEmail(email: string): TodayRoute | null {
+export function todayRouteForEmail(email: string, now = new Date()): TodayRoute | null {
     const data = loadFixtures()
 
     const driverId = seedDriverIds[email] ?? data.users.find((user) => user.email === email)?.id
@@ -20,6 +22,9 @@ export function todayRouteForEmail(email: string): TodayRoute | null {
 
     const route = data.routes.find((item) => item.driverId === driverId)
     if(!route) return null
+
+    const today = weekdayByIndex[now.getDay()]
+    if (!(route.weekdays as readonly string[]).includes(today)) return null
 
     const tractor = data.tractors.find((item) => item.id === route.tractorId)
     return {
