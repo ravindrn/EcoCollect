@@ -12,9 +12,10 @@ import {
  } from './src/services/announcements'
 import { getMyProfile, type DriverProfile } from './src/services/profile'
 import { clearToken } from './src/services/session'
-import { todayMapForEmail, todayRouteForEmail } from './src/services/todayRoute'
+import { todayMapForEmail, todayRouteForEmail, trackerPowerForEmail } from './src/services/todayRoute'
 import { gpsSampleIntervalMs } from './src/config/gps'
 import { TripMap } from './src/components/TripMap'
+import { engineOnMs, intervalsFromTrackerPower } from './src/services/engineLog'
 import {
   GpsDeniedError,
   enqueueFix,
@@ -167,6 +168,7 @@ export default function App() {
     const tripMap = fixtureMap
       ? { path: fixtureMap.path, latest: livePoint ?? fixtureMap.latest }
       : null
+    const engineIntervals = intervalsFromTrackerPower(profile ? trackerPowerForEmail(profile.email) : [])
 
     return (
       <View style={styles.container}>
@@ -188,6 +190,14 @@ export default function App() {
         <Pressable onPress={() => setTripActive(false)} style={styles.button}>
           <Text style={styles.buttonText}>{t('tripStop')}</Text>
         </Pressable>
+        <Text>{t('engineSource')}</Text>
+        {engineIntervals.map((interval) => (
+          <Text key={interval.startedAt}>
+            {new Date(interval.startedAt).toISOString().slice(11, 16)}–
+            {interval.endedAt === null ? '...' : new Date(interval.endedAt).toISOString().slice(11, 16)}
+          </Text>
+        ))}
+        <Text>{t('engineTotal')}: {engineOnMs(engineIntervals)} ms</Text>
         <Pressable onPress={() => setShowTrip(false)} style={styles.button}>
           <Text style={styles.buttonText}>{t('tripBack')}</Text>
         </Pressable>

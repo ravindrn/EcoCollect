@@ -60,3 +60,19 @@ export function todayMapForEmail(email: string): { path: MapPoint[]; latest: Map
             : route.path[0],
     }
 }
+
+export function trackerPowerForEmail(email: string): { state: 'ON' | 'OFF'; recordedAt: string }[] {
+    const data = loadFixtures()
+    const driverId = seedDriverIds[email] ?? data.users.find((user) => user.email === email)?.id
+    if (!driverId) return []
+
+    const route = data.routes.find((item) => item.driverId === driverId)
+    if (!route) return []
+
+    const trip = data.trips.find((item) => item.routeId === route.id)
+    if (!trip) return []
+
+    return data.engineEvents
+        .filter((event) => event.tripId === trip.id)
+        .map((event) => ({ state: event.state, recordedAt: event.recordedAt }))
+}
