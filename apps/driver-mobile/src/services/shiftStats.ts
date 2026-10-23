@@ -32,6 +32,10 @@ export function isOverspeed(speedKmh: number, limitKmh = overspeedLimitKmh): boo
   return speedKmh > limitKmh
 }
 
+export function fuelEstimateLiters(distanceKm: number): number {
+  return distanceKm / 8
+}
+
 export function fixtureShift() {
   const distanceKm = trackDistanceKm(fixtureTrack)
   return {
@@ -41,5 +45,6 @@ export function fixtureShift() {
     })),
     distanceKm,
     currentSpeedKmh: fixtureTrack[fixtureTrack.length - 1]?.speedKmh ?? 0,
+    fuelLiters: fuelEstimateLiters(distanceKm),
   }
 }

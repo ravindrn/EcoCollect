@@ -207,6 +207,7 @@ export default function App() {
             {sample.speedKmh} km/h{sample.overspeed ? ` ${t('overspeed')}` : ''}
           </Text>
         ))}
+        <Text>{t('fuelLabel')}: {shift.fuelLiters.toFixed(1)} L {t('fuelEstimate')}</Text>
         <Pressable onPress={() => setShowTrip(false)} style={styles.button}>
           <Text style={styles.buttonText}>{t('tripBack')}</Text>
         </Pressable>
