@@ -18,6 +18,10 @@ const resources = {
         profileTitle: 'Profile',
         profileMissing: 'No profile details yet',
         signOut: 'Sign out',
+        routeTitle: 'Today’s route',
+        routeEmpty: 'No route assigned today',
+        routeTractor: 'Tractor',
+        routeStops: 'Stops',
       },
 },
 si: {
@@ -34,6 +38,10 @@ si: {
         profileTitle: 'පැතිකඩ',
         profileMissing: 'ප්‍රෝෆිලි විස්තර නැත',
         signOut: 'ඉවත් කිරීම',
+        routeTitle: 'අද මාර්ගය',
+        routeEmpty: 'අද මාර්ගයක් නියම කර නැත',
+        routeTractor: 'ට්‍රැක්ටරය',
+        routeStops: 'නැවතුම්',
       },
 },
 ta: {
@@ -50,6 +58,10 @@ ta: {
       profileTitle: 'சுயவிவரம்',
       profileMissing: 'சுயவிவர விவரங்கள் இல்லை',
       signOut: 'வெளியேறு',
+      routeTitle: 'இன்றைய பாதை', 
+      routeEmpty: 'இன்று பாதை ஒதுக்கப்படவில்லை', 
+      routeTractor: 'டிராக்டர்', 
+      routeStops: 'நிறுத்தங்கள்',
     },
 },
 }

@@ -13,6 +13,7 @@ import {
  } from './src/services/announcements'
 import { getMyProfile, type DriverProfile } from './src/services/profile'
 import { clearToken } from './src/services/session'
+import { todayRouteForEmail } from './src/services/todayRoute'
 
 const schema = z.object({
   email: z.string().email('Enter a valid email'),
@@ -35,6 +36,7 @@ export default function App() {
   const [notices, setNotices] = useState<Announcement[]>([])
   const [noticeError, setNoticeError] = useState<string | null>(null)
   const [profile, setProfile] = useState<DriverProfile | null>(null)
+  const route = profile ? todayRouteForEmail(profile.email) : null
   const [profileError, setProfileError] = useState<string | null>(null)
 
   function chooseLanguage(language: AppLanguage) {
@@ -80,6 +82,19 @@ export default function App() {
 
         </View>
       ))}
+
+      <Text style={styles.title}>{t('routeTitle')}</Text>
+        {route ? (
+          <View>
+            <Text>{route.routeName}</Text>
+            <Text>{t('routeTractor')}: {route.tractorName}</Text>
+            <Text>{route.plannedStart}–{route.plannedEnd}</Text>
+            <Text>{t('routeStops')}: {route.stopCount}</Text>
+          </View>
+        ) : (
+        <Text>{t('routeEmpty')}</Text>
+        )}
+
       <Text style={styles.title}>{t('profileTitle')}</Text>
       {profileError ? <Text>{profileError}</Text> : null}
       {profile ? <Text>{profile.email}</Text> : null}
