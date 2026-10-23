@@ -23,7 +23,7 @@ export async function login(email: string, password: string): Promise<void> {
     }
 
     if(body.data?.user.role !== 'DRIVER' || !body.data.token) {
-        throw new Error('only driver can sign in')
+        throw new Error('ROLE_REJECTED')
     }
 
     await saveToken(body.data.token)

@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import { z } from 'zod'
-import { env } from './src/config/env'
 import { login } from './src/services/auth'
 import { useTranslation  } from 'react-i18next'
 import { saveLanguage, type AppLanguage } from './src/i18n/language' 
@@ -15,24 +14,43 @@ import { getMyProfile, type DriverProfile } from './src/services/profile'
 import { clearToken } from './src/services/session'
 import { todayRouteForEmail } from './src/services/todayRoute'
 
-const schema = z.object({
-  email: z.string().email('Enter a valid email'),
-  password: z.string().min(1, 'Password is required'),
-})
+type FormValues = { email: string; password: string }
 
-type FormValues = z.infer<typeof schema>
+function LanguageChoices({ onChoose }: { onChoose: (language: AppLanguage) => void }) {
+  return (
+    <View style={styles.languages}>
+      <Pressable onPress={() => onChoose('en')} style={styles.languageButton}>
+        <Text>English</Text>
+      </Pressable>
+      <Pressable onPress={() => onChoose('si')} style={styles.languageButton}>
+        <Text>සිංහල</Text>
+      </Pressable>
+      <Pressable onPress={() => onChoose('ta')} style={styles.languageButton}>
+        <Text>தமிழ்</Text>
+      </Pressable>
+    </View>
+  )
+}
 
 export default function App() {
+  const { t, i18n } = useTranslation()
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.string().email(t('emailInvalid')),
+        password: z.string().min(1, t('passwordRequired')),
+      }),
+    [t],
+  )
   const [signedIn, setSignedIn] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-  const { handleSubmit, setValue, watch, formState } = useForm<FormValues>({
+  const { handleSubmit, setValue, watch, formState, trigger } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
   })
 
   const email = watch('email')
   const password = watch('password')
-  const { t, i18n } = useTranslation()
   const [notices, setNotices] = useState<Announcement[]>([])
   const [noticeError, setNoticeError] = useState<string | null>(null)
   const [profile, setProfile] = useState<DriverProfile | null>(null)
@@ -46,6 +64,10 @@ export default function App() {
     saveLanguage(language)
     void i18n.changeLanguage(language)
   }
+
+  useEffect(() => {
+    if (formState.isSubmitted) void trigger()
+  }, [i18n.language, formState.isSubmitted, trigger])
   
   useEffect(() => {
     if(!signedIn) return
@@ -66,7 +88,11 @@ export default function App() {
       await login(values.email, values.password)
       setSignedIn(true)
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : 'Sign-in failed')
+      if (error instanceof Error && error.message === 'ROLE_REJECTED') {
+        setFormError(t('roleRejected'))
+        return
+      }
+      setFormError(error instanceof Error ? error.message : t('signInFailed'))
     }
   })
 
@@ -84,6 +110,7 @@ export default function App() {
     return (
       <View style={styles.container}>
         <Text style={styles.title}>{t('shellTitle')}</Text>
+        <LanguageChoices onChoose={chooseLanguage} />
         <Text>{t('signedIn')}</Text>
         <Text style={styles.title}>{t('inboxTitle')}</Text>
         {noticeError ? <Text>{noticeError}</Text> : null}
@@ -148,9 +175,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{t('title')}</Text>
-      <Pressable onPress={() => chooseLanguage('en')}><Text>English</Text></Pressable>
-      <Pressable onPress={() => chooseLanguage('si')}><Text>සිංහල</Text></Pressable>
-      <Pressable onPress={() => chooseLanguage('ta')}><Text>தமிழ்</Text></Pressable>
+      <LanguageChoices onChoose={chooseLanguage} />
       <TextInput
         autoCapitalize="none"
         keyboardType="email-address"
@@ -180,6 +205,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#F5F7FA' },
   title: { fontSize: 24, fontWeight: '700', marginBottom: 16 },
   input: { backgroundColor: 'white', borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 8, padding: 12, marginTop: 8 },
-  button: { marginTop: 16, backgroundColor: '#0F766E', borderRadius: 8, padding: 14 },
+  languages: { flexDirection: 'row', gap: 8, marginBottom: 12 },
+  languageButton: { minHeight: 48, justifyContent: 'center', paddingHorizontal: 12 },
+  button: { marginTop: 16, backgroundColor: '#0F766E', borderRadius: 8, padding: 14, minHeight: 48, justifyContent: 'center' },
   buttonText: { color: 'white', textAlign: 'center', fontWeight: '700' },
 })
