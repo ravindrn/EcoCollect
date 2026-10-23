@@ -12,12 +12,14 @@ import {
  } from './src/services/announcements'
 import { getMyProfile, type DriverProfile } from './src/services/profile'
 import { clearToken } from './src/services/session'
-import { todayRouteForEmail } from './src/services/todayRoute'
+import { todayMapForEmail, todayRouteForEmail } from './src/services/todayRoute'
 import { gpsSampleIntervalMs } from './src/config/gps'
+import { TripMap } from './src/components/TripMap'
 import {
   GpsDeniedError,
   enqueueFix,
   flushQueue,
+  latestQueuedPoint,
   queuedPointCount,
   readCurrentFix,
 } from './src/services/gpsQueue'
@@ -67,6 +69,7 @@ export default function App() {
   const [weightText, setWeightText] = useState('')
   const [savedWeight, setSavedWeight] = useState<number | null>(null)
   const [weightError, setWeightError] = useState<string | null>(null)
+  const [showTrip, setShowTrip] = useState(false)
   const [tripActive, setTripActive] = useState(false)
   const [queueCount, setQueueCount] = useState(0)
   const [gpsDenied, setGpsDenied] = useState(false)
@@ -158,6 +161,40 @@ export default function App() {
     setSavedWeight(weight)
   }
 
+  if (signedIn && showTrip) {
+    const fixtureMap = profile ? todayMapForEmail(profile.email) : null
+    const livePoint = latestQueuedPoint()
+    const tripMap = fixtureMap
+      ? { path: fixtureMap.path, latest: livePoint ?? fixtureMap.latest }
+      : null
+
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>{t('tripTitle')}</Text>
+        {!profile && !profileError ? <Text>{t('routeLoading')}</Text> : null}
+        {tripMap ? (
+          <View>
+            <Text>{t('plannedRoute')}</Text>
+            <Text>{t('latestPoint')}</Text>
+            <TripMap path={tripMap.path} latest={tripMap.latest} />
+          </View>
+        ) : null}
+        {profile && !tripMap ? <Text>{t('routeEmpty')}</Text> : null}
+        {gpsDenied ? <Text>{t('gpsDenied')}</Text> : null}
+        <Text>{t('gpsQueued')}: {queueCount}</Text>
+        <Pressable onPress={() => setTripActive(true)} style={styles.button}>
+          <Text style={styles.buttonText}>{t('tripStart')}</Text>
+        </Pressable>
+        <Pressable onPress={() => setTripActive(false)} style={styles.button}>
+          <Text style={styles.buttonText}>{t('tripStop')}</Text>
+        </Pressable>
+        <Pressable onPress={() => setShowTrip(false)} style={styles.button}>
+          <Text style={styles.buttonText}>{t('tripBack')}</Text>
+        </Pressable>
+      </View>
+    )
+  }
+
   if (signedIn) {
     return (
       <View style={styles.container}>
@@ -187,14 +224,8 @@ export default function App() {
         ) : null}
         {profile && !route ? <Text>{t('routeEmpty')}</Text> : null}
 
-      <Text style={styles.title}>{t('tripTitle')}</Text>
-      {gpsDenied ? <Text>{t('gpsDenied')}</Text> : null}
-      <Text>{t('gpsQueued')}: {queueCount}</Text>
-      <Pressable onPress={() => setTripActive(true)} style={styles.button}>
-        <Text style={styles.buttonText}>{t('tripStart')}</Text>
-      </Pressable>
-      <Pressable onPress={() => setTripActive(false)} style={styles.button}>
-        <Text style={styles.buttonText}>{t('tripStop')}</Text>
+      <Pressable onPress={() => setShowTrip(true)} style={styles.button}>
+        <Text style={styles.buttonText}>{t('tripOpen')}</Text>
       </Pressable>
 
       <Text style={styles.title}>{t('weightTitle')}</Text>
@@ -224,6 +255,7 @@ export default function App() {
         void clearToken()
         setSignedIn(false)
         setTripActive(false)
+        setShowTrip(false)
         setNotices([])
         setProfile(null)
       }}

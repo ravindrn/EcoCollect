@@ -35,3 +35,28 @@ export function todayRouteForEmail(email: string, now = new Date()): TodayRoute 
         stopCount: route.stopCount,
     }  
 }
+
+export type MapPoint = {
+    latitude: number
+    longitude: number
+}
+
+export function todayMapForEmail(email: string): { path: MapPoint[]; latest: MapPoint } | null {
+    const data = loadFixtures()
+    const driverId = seedDriverIds[email] ?? data.users.find((user) => user.email === email)?.id
+    if (!driverId) return null
+
+    const route = data.routes.find((item) => item.driverId === driverId)
+    if (!route) return null
+
+    const trip = data.trips.find((item) => item.routeId === route.id)
+    const points = data.gpsPoints.filter((item) => item.tripId === trip?.id)
+    const latestPoint = points[points.length - 1]
+
+    return {
+        path: route.path,
+        latest: latestPoint
+            ? { latitude: latestPoint.latitude, longitude: latestPoint.longitude }
+            : route.path[0],
+    }
+}
