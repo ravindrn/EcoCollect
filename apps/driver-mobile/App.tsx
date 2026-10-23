@@ -16,6 +16,7 @@ import { todayMapForEmail, todayRouteForEmail, trackerPowerForEmail } from './sr
 import { gpsSampleIntervalMs } from './src/config/gps'
 import { TripMap } from './src/components/TripMap'
 import { engineOnMs, intervalsFromTrackerPower } from './src/services/engineLog'
+import { fixtureShift } from './src/services/shiftStats'
 import {
   GpsDeniedError,
   enqueueFix,
@@ -74,6 +75,7 @@ export default function App() {
   const [tripActive, setTripActive] = useState(false)
   const [queueCount, setQueueCount] = useState(0)
   const [gpsDenied, setGpsDenied] = useState(false)
+  const shift = fixtureShift()
 
   function chooseLanguage(language: AppLanguage) {
     saveLanguage(language)
@@ -198,6 +200,13 @@ export default function App() {
           </Text>
         ))}
         <Text>{t('engineTotal')}: {engineOnMs(engineIntervals)} ms</Text>
+        <Text>{t('distanceLabel')}: {shift.distanceKm.toFixed(1)} km</Text>
+        <Text>{t('speedLabel')}: {shift.currentSpeedKmh} km/h</Text>
+        {shift.samples.map((sample) => (
+          <Text key={`${sample.latitude}-${sample.speedKmh}`}>
+            {sample.speedKmh} km/h{sample.overspeed ? ` ${t('overspeed')}` : ''}
+          </Text>
+        ))}
         <Pressable onPress={() => setShowTrip(false)} style={styles.button}>
           <Text style={styles.buttonText}>{t('tripBack')}</Text>
         </Pressable>
