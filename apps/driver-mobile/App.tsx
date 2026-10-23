@@ -38,6 +38,9 @@ export default function App() {
   const [profile, setProfile] = useState<DriverProfile | null>(null)
   const route = profile ? todayRouteForEmail(profile.email) : null
   const [profileError, setProfileError] = useState<string | null>(null)
+  const [weightText, setWeightText] = useState('')
+  const [savedWeight, setSavedWeight] = useState<number | null>(null)
+  const [weightError, setWeightError] = useState<string | null>(null)
 
   function chooseLanguage(language: AppLanguage) {
     saveLanguage(language)
@@ -67,6 +70,16 @@ export default function App() {
     }
   })
 
+  function saveWeight() {
+    const weight = Number(weightText)
+    if (!Number.isFinite(weight) || weight <= 0) {
+      setWeightError(t('weightInvalid'))
+      return
+    }
+    setWeightError(null)
+    setSavedWeight(weight)
+  }
+
   if (signedIn) {
     return (
       <View style={styles.container}>
@@ -94,6 +107,23 @@ export default function App() {
         ) : (
         <Text>{t('routeEmpty')}</Text>
         )}
+
+      <Text style={styles.title}>{t('weightTitle')}</Text>
+      <Text>{t('weightLimit')}: 30 kg</Text>
+      <TextInput
+        keyboardType="decimal-pad"
+        value={weightText}
+        onChangeText={(value) => setWeightText(value)}
+        placeholder={t('weightLabel')}
+        style={styles.input}
+      />
+      {weightError ? <Text>{weightError}</Text> : null}
+      <Pressable onPress={saveWeight} style={styles.button}>
+        <Text style={styles.buttonText}>{t('weightSave')}</Text>
+      </Pressable>
+      {savedWeight !== null ? (
+        <Text>{t('weightSaved')}: {savedWeight} kg</Text>
+      ) : null}
 
       <Text style={styles.title}>{t('profileTitle')}</Text>
       {profileError ? <Text>{profileError}</Text> : null}

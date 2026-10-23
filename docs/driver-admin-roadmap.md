@@ -388,7 +388,7 @@ Verify:
 
 ### 15. Collected weight entry
 
-- [ ] [SWMSBP-62](https://ravindunadeesha.atlassian.net/browse/SWMSBP-62)
+- [x] [SWMSBP-62](https://ravindunadeesha.atlassian.net/browse/SWMSBP-62)
 - Epic: SWMSBP-5. Difficulty: Medium. Depends on: task 9.
 
 After the route is marked complete, enter weight in kilograms. Zod rejects empty, negative, and non-numeric values. Keep a draft if the submit fails. Show the household collection limit as information. Do not block the entry with that limit.
