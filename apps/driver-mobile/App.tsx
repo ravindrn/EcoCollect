@@ -13,6 +13,14 @@ import {
 import { getMyProfile, type DriverProfile } from './src/services/profile'
 import { clearToken } from './src/services/session'
 import { todayRouteForEmail } from './src/services/todayRoute'
+import { gpsSampleIntervalMs } from './src/config/gps'
+import {
+  GpsDeniedError,
+  enqueueFix,
+  flushQueue,
+  queuedPointCount,
+  readCurrentFix,
+} from './src/services/gpsQueue'
 
 type FormValues = { email: string; password: string }
 
@@ -59,6 +67,9 @@ export default function App() {
   const [weightText, setWeightText] = useState('')
   const [savedWeight, setSavedWeight] = useState<number | null>(null)
   const [weightError, setWeightError] = useState<string | null>(null)
+  const [tripActive, setTripActive] = useState(false)
+  const [queueCount, setQueueCount] = useState(0)
+  const [gpsDenied, setGpsDenied] = useState(false)
 
   function chooseLanguage(language: AppLanguage) {
     saveLanguage(language)
@@ -81,6 +92,47 @@ export default function App() {
        setProfileError(error instanceof Error ? error.message : t('inboxError')),
     )
   }, [signedIn, t])
+
+  useEffect(() => {
+    if (!signedIn) return
+    setQueueCount(queuedPointCount())
+  }, [signedIn])
+
+  useEffect(() => {
+    if (!tripActive) return
+
+    let lastFix: { latitude: number; longitude: number; speedKmh: number | null } | null = null
+
+    const sample = async () => {
+      const online = typeof navigator !== 'undefined' && navigator.onLine
+      try {
+        const fix = await readCurrentFix()
+        lastFix = fix
+        const count = enqueueFix(fix)
+        setQueueCount(online ? flushQueue(true) : count)
+        setGpsDenied(false)
+      } catch (error) {
+        if (error instanceof GpsDeniedError) {
+          setGpsDenied(true)
+          setTripActive(false)
+          return
+        }
+        if (lastFix) {
+          const count = enqueueFix(lastFix)
+          setQueueCount(online ? flushQueue(true) : count)
+        }
+      }
+    }
+
+    void sample()
+    const timer = setInterval(() => void sample(), gpsSampleIntervalMs)
+    const onOnline = () => setQueueCount(flushQueue(true))
+    if (typeof window !== 'undefined') window.addEventListener('online', onOnline)
+    return () => {
+      clearInterval(timer)
+      if (typeof window !== 'undefined') window.removeEventListener('online', onOnline)
+    }
+  }, [tripActive])
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null)
@@ -135,6 +187,16 @@ export default function App() {
         ) : null}
         {profile && !route ? <Text>{t('routeEmpty')}</Text> : null}
 
+      <Text style={styles.title}>{t('tripTitle')}</Text>
+      {gpsDenied ? <Text>{t('gpsDenied')}</Text> : null}
+      <Text>{t('gpsQueued')}: {queueCount}</Text>
+      <Pressable onPress={() => setTripActive(true)} style={styles.button}>
+        <Text style={styles.buttonText}>{t('tripStart')}</Text>
+      </Pressable>
+      <Pressable onPress={() => setTripActive(false)} style={styles.button}>
+        <Text style={styles.buttonText}>{t('tripStop')}</Text>
+      </Pressable>
+
       <Text style={styles.title}>{t('weightTitle')}</Text>
       <Text>{t('weightLimit')}: 30 kg</Text>
       <TextInput
@@ -161,6 +223,7 @@ export default function App() {
         onPress={() => {
         void clearToken()
         setSignedIn(false)
+        setTripActive(false)
         setNotices([])
         setProfile(null)
       }}
