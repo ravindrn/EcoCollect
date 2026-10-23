@@ -45,6 +45,7 @@ export function ComplaintsScreen() {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [category, setCategory] = useState<Category | null>(null);
   const [title, setTitle] = useState("");
+
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState<ComplaintLocation | null>(null);
   const [photoUri, setPhotoUri] = useState<string | null>(null);
@@ -57,10 +58,13 @@ export function ComplaintsScreen() {
   const [successMessage, setSuccessMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
-  const titleError = !title.trim()
-    ? "Please enter a complaint title."
-    : title.trim().length > 100
-      ? "Title must be 100 characters or less."
+  const titleError =
+    category === "Other"
+      ? !title.trim()
+        ? "Please enter a complaint title."
+        : title.trim().length > 100
+          ? "Title must be 100 characters or less."
+          : ""
       : "";
 
   const descriptionError = !description.trim()
@@ -275,7 +279,7 @@ export function ComplaintsScreen() {
 
       if (Platform.OS === "web") {
         window.alert(message);
-         resetForm();
+        resetForm();
       } else {
         Alert.alert("Success!", message, [
           {
@@ -473,18 +477,22 @@ export function ComplaintsScreen() {
             </Text>
           )}
 
-          <Text className="mb-2 text-sm font-bold text-slate-900">Title *</Text>
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Enter complaint title"
-            placeholderTextColor="#94A3B8"
-            maxLength={100}
-            accessibilityLabel="Complaint title"
-            className={`rounded-2xl border bg-gray-50 px-4 py-3.5 text-sm text-slate-800 ${
-              submitted && titleError ? "border-red-500" : "border-gray-200"
-            }`}
-          />
+          {category === "Other" && (
+            <View>
+              <Text className="mb-2 text-sm font-medium text-gray-700">
+                Complaint Title
+              </Text>
+
+              <TextInput
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Enter complaint title"
+                className={`rounded-xl border px-4 py-3 ${
+                  titleError ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+            </View>
+          )}
           {submitted && titleError ? (
             <Text className="mb-2 mt-1.5 text-[13px] font-medium text-red-600">
               {titleError}
