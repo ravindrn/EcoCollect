@@ -105,18 +105,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [applyAuthResult],
   );
 
-  const signUp = useCallback(
-    async (input: RegisterInput) => {
-      setLoading(true);
-      try {
-        const result = await apiRegister(input);
-        await applyAuthResult(result);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [applyAuthResult],
-  );
+  const signUp = useCallback(async (input: RegisterInput) => {
+  setLoading(true);
+  try {
+    // Do NOT save token — user must sign in after registration.
+    await apiRegister(input);
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const value = useMemo<AuthState>(
     () => ({

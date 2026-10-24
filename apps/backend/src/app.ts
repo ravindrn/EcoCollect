@@ -13,6 +13,9 @@ import { announcementsRouter } from "./routes/announcements.js";
 import { communityUpdatesRouter } from "./routes/communityUpdates.js";
 import { complaintsRouter } from "./routes/complaints.js";
 import { uploadsDir } from "./lib/uploads.js";
+import { adminRouter } from './routes/admin.js';
+import { vehiclesRouter } from './routes/vehicles.js';
+import { adminVehiclesRouter } from './routes/adminVehicles.js';
 
 export function createApp() {
   const app = express();
@@ -41,6 +44,9 @@ export function createApp() {
       index: false,
     }),
   );
+  app.use('/api/v1/admin', adminRouter);
+  app.use('/api/v1/vehicles', vehiclesRouter);
+  app.use('/api/v1/admin', adminVehiclesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

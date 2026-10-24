@@ -3,7 +3,9 @@ import { LoginScreen } from '../screens/LoginScreen';
 import { RegisterScreen } from '../screens/RegisterScreen';
 
 export type AuthStackParamList = {
-  Login: undefined;
+  Login:
+    | { justRegistered?: boolean; email?: string }
+    | undefined;
   Register: undefined;
 };
 
