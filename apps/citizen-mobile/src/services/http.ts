@@ -75,6 +75,54 @@ export async function request<T>(
   return json as T;
 }
 
+async function postFormData<T>(
+  path: string,
+  formData: FormData,
+  opts: RequestOptions = {},
+): Promise<T> {
+  const url = `${env.apiBaseUrl}${path}`;
+
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (opts.auth) {
+    const token = await getToken();
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  const text = await res.text();
+  const json = text ? JSON.parse(text) : null;
+
+  if (res.status === 401 && opts.auth) {
+    await clearToken();
+    unauthorizedHandler?.();
+  }
+
+  if (!res.ok) {
+    const message =
+      json?.error?.message ?? json?.message ?? `Request failed (${res.status})`;
+
+    throw new ApiError(message, res.status, json?.error?.code, json?.error);
+  }
+
+  if (json && typeof json === "object" && "success" in json && "data" in json) {
+    return (json as { data: T }).data;
+  }
+
+  return json as T;
+}
+
+
 export const api = {
   get: <T>(path: string, opts?: RequestOptions) =>
     request<T>("GET", path, undefined, opts),
@@ -82,9 +130,16 @@ export const api = {
   post: <T>(path: string, body?: unknown, opts?: RequestOptions) =>
     request<T>("POST", path, body, opts),
 
+  postFormData: <T>(
+    path: string,
+    formData: FormData,
+    opts?: RequestOptions,
+  ) => postFormData<T>(path, formData, opts),
+
   patch: <T>(path: string, body?: unknown, opts?: RequestOptions) =>
     request<T>("PATCH", path, body, opts),
 
   delete: <T>(path: string, opts?: RequestOptions) =>
     request<T>("DELETE", path, undefined, opts),
 };
+

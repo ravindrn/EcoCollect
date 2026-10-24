@@ -476,41 +476,45 @@ export function HomeScreen() {
         <AppHeader onNotificationPress={() => {}} />
 
         {/* ───────────── Welcome ───────────── */}
-        <View className="mb-5 mt-4 flex-row items-center gap-4">
-          <View className="h-[72px] w-[72px] items-center justify-center rounded-full bg-emerald-100 p-1">
-            <View className="h-full w-full items-center justify-center rounded-full bg-emerald-600">
-              <Text className="text-[28px] font-extrabold text-white">
-                {initial}
-              </Text>
-            </View>
-          </View>
-
-          <View className="flex-1">
-            <Text className="text-sm font-medium text-slate-500">
-              {greeting},
-            </Text>
-
-            <Text
-              className="mt-0.5 text-[26px] font-extrabold tracking-tight text-slate-900"
-              numberOfLines={1}
-            >
-              {firstName}! 👋
-            </Text>
-
-            <View className="mt-2 flex-row">
-              <View className="flex-row items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-1">
-                <Text className="text-xs">📍</Text>
-                <Text className="text-xs font-semibold text-emerald-700">
-                  {user?.areaName || "Area not selected"}
+        <View className="mb-5 mt-4 rounded-3xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-sm">
+          <View className="flex-row items-center gap-4">
+            <View className="h-[72px] w-[72px] items-center justify-center rounded-full bg-emerald-100 p-1">
+              <View className="h-full w-full items-center justify-center rounded-full bg-emerald-600">
+                <Text className="text-[28px] font-extrabold text-white">
+                  {initial}
                 </Text>
               </View>
             </View>
+
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-slate-500">
+                {greeting},
+              </Text>
+
+              <Text
+                className="mt-0.5 text-[26px] font-extrabold tracking-tight text-slate-900"
+                numberOfLines={1}
+              >
+                {firstName}! 👋
+              </Text>
+
+              <View className="mt-2 flex-row">
+                <View className="flex-row items-center gap-1 rounded-full border border-emerald-200 bg-white px-2.5 py-1">
+                  <Text className="text-xs">📍</Text>
+                  <Text className="text-xs font-semibold text-emerald-700">
+                    {user?.areaName || "Area not selected"}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View className="mt-4 border-t border-emerald-100 pt-3">
+            <Text className="text-[13px] leading-5 text-slate-600">
+              Let's keep our community clean. 🌿
+            </Text>
           </View>
         </View>
-
-        <Text className="mb-5 text-[13px] leading-5 text-slate-500">
-          Let's keep our community clean.
-        </Text>
 
         {/* ───────────── Next Collection (hero card) ───────────── */}
         <View className="overflow-hidden rounded-3xl bg-emerald-600 p-5 shadow-md">
