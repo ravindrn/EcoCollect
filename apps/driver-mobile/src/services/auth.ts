@@ -10,7 +10,7 @@ type LoginResponse = {
        error?: { code?: string; message?:string}
 }
 
-export async function login(email: string, password: string): Promise<void> {
+export async function login(email: string, password: string): Promise<string> {
     const response = await fetch(`${env.apiBaseUrl}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json'},
@@ -27,4 +27,5 @@ export async function login(email: string, password: string): Promise<void> {
     }
 
     await saveToken(body.data.token)
+    return body.data.token
 }

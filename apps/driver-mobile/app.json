@@ -4,13 +4,17 @@
     "slug": "ecocollect-driver",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "ecocollect-driver",
     "userInterfaceStyle": "light",
+    "plugins": ["expo-router"],
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
     "android": {},
-    "web": {},
+    "web": {
+      "bundler": "metro"
+    },
     "extra": {
       "apiBaseUrl": "http://localhost:4000/api/v1"
     }

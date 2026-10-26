@@ -26,7 +26,7 @@ export async function getMyProfile(): Promise<DriverProfile> {
 const body = (await response.json()) as ProfileResponse
 
 if (!response.ok || !body.data) {
-    throw new Error(body.error?.message ?? 'Could not load profile')
+    throw new Error(body.error?.message ?? 'LOAD_FAILED')
 }
 
 return body.data

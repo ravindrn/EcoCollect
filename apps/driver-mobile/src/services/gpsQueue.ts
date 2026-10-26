@@ -67,6 +67,29 @@ export function flushQueue(online: boolean): number {
   return 0
 }
 
+export function watchFixes(onFix: (fix: Fix) => void, onError: (error: unknown) => void): () => void {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    onError(new GpsDeniedError())
+    return () => {}
+  }
+  const id = navigator.geolocation.watchPosition(
+    (position) => {
+      const speed = position.coords.speed
+      onFix({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        speedKmh: typeof speed === 'number' ? Math.round(speed * 3.6) : null,
+      })
+    },
+    (error) => {
+      if (error.code === error.PERMISSION_DENIED) onError(new GpsDeniedError())
+      else onError(error)
+    },
+    { enableHighAccuracy: true, maximumAge: 4000, timeout: 12000 },
+  )
+  return () => navigator.geolocation.clearWatch(id)
+}
+
 export function readCurrentFix(): Promise<Fix> {
   return new Promise((resolve, reject) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {

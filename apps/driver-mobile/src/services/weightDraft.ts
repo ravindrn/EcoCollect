@@ -1,4 +1,10 @@
+import { loadFixtures } from '@ecocollect/api-contracts'
+
 const KEY = 'ecocollect.driver.weightDraft'
+
+export function householdLimitKg(): number {
+  return loadFixtures().weightEntries[0]?.householdLimitKg ?? 30
+}
 
 export function saveWeightDraft(kg: number): void {
     if (typeof localStorage === 'undefined') return

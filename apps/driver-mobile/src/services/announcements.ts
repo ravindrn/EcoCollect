@@ -22,7 +22,7 @@ export async function getPublishedAnnouncements(): Promise<Announcement[]> {
     const body = (await response.json()) as AnnouncementResponse
 
     if (!response.ok) {
-        throw new Error(body.error?.message ?? 'Could not load announcements')
+        throw new Error(body.error?.message ?? 'LOAD_FAILED')
     }
 
     return body.data ?? []
