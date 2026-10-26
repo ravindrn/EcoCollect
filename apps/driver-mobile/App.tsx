@@ -25,6 +25,9 @@ import {
   queuedPointCount,
   readCurrentFix,
 } from './src/services/gpsQueue'
+import { saveWeightDraft } from './src/services/weightDraft'
+import { fixtureActivityLog, saveActivityLog, segmentMinutes } from './src/services/activity'
+import { offlineQueue, retryOfflineQueue } from './src/services/offlineQueue'
 
 type FormValues = { email: string; password: string }
 
@@ -72,6 +75,8 @@ export default function App() {
   const [savedWeight, setSavedWeight] = useState<number | null>(null)
   const [weightError, setWeightError] = useState<string | null>(null)
   const [showTrip, setShowTrip] = useState(false)
+  const [showQueue, setShowQueue] = useState(false)
+  const [waiting, setWaiting] = useState(offlineQueue())
   const [tripActive, setTripActive] = useState(false)
   const [queueCount, setQueueCount] = useState(0)
   const [gpsDenied, setGpsDenied] = useState(false)
@@ -162,6 +167,36 @@ export default function App() {
     }
     setWeightError(null)
     setSavedWeight(weight)
+    saveWeightDraft(weight)
+  }
+
+  if (signedIn && showQueue) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>{t('queueTitle')}</Text>
+        <Text>{t('queueCount')}: {waiting.count}</Text>
+        {waiting.count === 0 ? <Text>{t('queueEmpty')}</Text> : null}
+        {waiting.gps.map((point) => (
+          <Text key={point.id}>{t('queueGps')} {point.recordedAt}</Text>
+        ))}
+        {waiting.weightKg !== null ? <Text>{t('queueWeight')}: {waiting.weightKg} kg</Text> : null}
+        {waiting.activity.map((segment) => (
+          <Text key={segment.id}>{t('queueActivity')} {segment.kind}</Text>
+        ))}
+        <Pressable
+          onPress={() => {
+            retryOfflineQueue()
+            setWaiting(offlineQueue())
+          }}
+          style={styles.button}
+        >
+          <Text style={styles.buttonText}>{t('queueRetry')}</Text>
+        </Pressable>
+        <Pressable onPress={() => setShowQueue(false)} style={styles.button}>
+          <Text style={styles.buttonText}>{t('tripBack')}</Text>
+        </Pressable>
+      </View>
+    )
   }
 
   if (signedIn && showTrip) {
@@ -171,6 +206,8 @@ export default function App() {
       ? { path: fixtureMap.path, latest: livePoint ?? fixtureMap.latest }
       : null
     const engineIntervals = intervalsFromTrackerPower(profile ? trackerPowerForEmail(profile.email) : [])
+    const activity = fixtureActivityLog()
+    saveActivityLog(activity)
 
     return (
       <View style={styles.container}>
@@ -208,6 +245,15 @@ export default function App() {
           </Text>
         ))}
         <Text>{t('fuelLabel')}: {shift.fuelLiters.toFixed(1)} L {t('fuelEstimate')}</Text>
+        <Text>{t('activityTitle')}</Text>
+        {activity.map((segment) => (
+          <Text key={segment.id}>
+            {segment.kind === 'MOVING' ? t('activityMoving') : segment.kind === 'IDLE' ? t('activityIdle') : t('activityStop')}
+            {' '}
+            {(segment.endedAt - segment.startedAt) / 60000} min
+          </Text>
+        ))}
+        <Text>{segmentMinutes(activity)} min</Text>
         <Pressable onPress={() => setShowTrip(false)} style={styles.button}>
           <Text style={styles.buttonText}>{t('tripBack')}</Text>
         </Pressable>
@@ -247,6 +293,15 @@ export default function App() {
       <Pressable onPress={() => setShowTrip(true)} style={styles.button}>
         <Text style={styles.buttonText}>{t('tripOpen')}</Text>
       </Pressable>
+      <Pressable
+        onPress={() => {
+          setWaiting(offlineQueue())
+          setShowQueue(true)
+        }}
+        style={styles.button}
+      >
+        <Text style={styles.buttonText}>{t('queueOpen')}</Text>
+      </Pressable>
 
       <Text style={styles.title}>{t('weightTitle')}</Text>
       <Text>{t('weightLimit')}: 30 kg</Text>
@@ -276,6 +331,7 @@ export default function App() {
         setSignedIn(false)
         setTripActive(false)
         setShowTrip(false)
+        setShowQueue(false)
         setNotices([])
         setProfile(null)
       }}
