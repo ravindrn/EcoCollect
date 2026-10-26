@@ -171,3 +171,206 @@ export async function getVehicleHistory(
     { auth: true },
   );
 }
+
+// ---------------------------------------------------------------------------
+// Complaints
+// ---------------------------------------------------------------------------
+
+export type ComplaintCategory =
+  | 'OVERFLOW'
+  | 'MISSED_PICKUP'
+  | 'ILLEGAL_DUMPING'
+  | 'BURNING'
+  | 'DAMAGED_BIN'
+  | 'OTHER';
+
+export type ComplaintStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+
+export type AdminComplaintItem = {
+  id: string;
+  category: ComplaintCategory;
+  status: ComplaintStatus;
+  description: string;
+  photoUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  createdAt: string;
+  updatedAt: string;
+  reporter: {
+    id: string;
+    email: string;
+    fullName: string | null;
+    phone: string | null;
+    wardDivision: string | null;
+  };
+};
+
+export type ComplaintsListResult = {
+  items: AdminComplaintItem[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  statusCounts: Record<string, number>;
+};
+
+export type ComplaintsQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: ComplaintStatus;
+  category?: ComplaintCategory;
+  q?: string;
+};
+
+export async function getComplaints(
+  params: ComplaintsQuery = {},
+): Promise<ComplaintsListResult> {
+  const search = new URLSearchParams();
+  if (params.page) search.set('page', String(params.page));
+  if (params.pageSize) search.set('pageSize', String(params.pageSize));
+  if (params.status) search.set('status', params.status);
+  if (params.category) search.set('category', params.category);
+  if (params.q) search.set('q', params.q);
+  const qs = search.toString();
+  return api.get<ComplaintsListResult>(
+    `/admin/complaints${qs ? `?${qs}` : ''}`,
+    { auth: true },
+  );
+}
+
+export async function getComplaint(id: string): Promise<AdminComplaintItem> {
+  return api.get<AdminComplaintItem>(`/admin/complaints/${id}`, { auth: true });
+}
+
+export async function updateComplaintStatus(
+  id: string,
+  status: ComplaintStatus,
+): Promise<{ id: string; status: ComplaintStatus; updatedAt: string }> {
+  return api.patch(
+    `/admin/complaints/${id}/status`,
+    { status },
+    { auth: true },
+  );
+}
+
+/** Resolve a complaint photo URL from the backend into an absolute URL. */
+export function resolvePhotoUrl(photoUrl: string | null): string | null {
+  if (!photoUrl) return null;
+  // Backend returns relative paths like /uploads/xxx.jpg
+  // env.apiBaseUrl is like http://localhost:4000/api/v1
+  const base = import.meta.env.VITE_API_BASE_URL ?? '';
+  const origin = base.replace(/\/api\/v1\/?$/, '');
+  return `${origin}${photoUrl}`;
+}
+
+// ---------------------------------------------------------------------------
+// Announcements (admin)
+// ---------------------------------------------------------------------------
+
+export type AnnouncementPriority = 'NORMAL' | 'IMPORTANT' | 'URGENT';
+export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export type Announcement = {
+  id: string;
+  title: string;
+  description: string;
+  priority: AnnouncementPriority;
+  status: AnnouncementStatus;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AnnouncementListResult = {
+  items: Announcement[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type CreateAnnouncementInput = {
+  title: string;
+  description: string;
+  priority?: AnnouncementPriority;
+};
+
+export type UpdateAnnouncementInput = {
+  title?: string;
+  description?: string;
+  priority?: AnnouncementPriority;
+  status?: AnnouncementStatus;
+};
+
+export async function getAnnouncementsAdmin(params: {
+  page?: number;
+  pageSize?: number;
+  status?: AnnouncementStatus;
+  priority?: AnnouncementPriority;
+  q?: string;
+} = {}): Promise<AnnouncementListResult> {
+  const search = new URLSearchParams();
+  if (params.page) search.set('page', String(params.page));
+  if (params.pageSize) search.set('pageSize', String(params.pageSize));
+  if (params.status) search.set('status', params.status);
+  if (params.priority) search.set('priority', params.priority);
+  if (params.q) search.set('q', params.q);
+  const qs = search.toString();
+  return api.get(`/admin/announcements${qs ? `?${qs}` : ''}`, { auth: true });
+}
+
+export async function createAnnouncement(
+  input: CreateAnnouncementInput,
+): Promise<Announcement> {
+  return api.post('/announcements', input, { auth: true });
+}
+
+export async function updateAnnouncement(
+  id: string,
+  input: UpdateAnnouncementInput,
+): Promise<Announcement> {
+  return api.patch(`/announcements/${id}`, input, { auth: true });
+}
+
+export async function deleteAnnouncement(id: string): Promise<{ id: string }> {
+  return api.delete(`/admin/announcements/${id}`, { auth: true });
+}
+
+// ---------------------------------------------------------------------------
+// Areas (admin)
+// ---------------------------------------------------------------------------
+
+export type AdminArea = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+  citizenCount: number;
+  updateCount: number;
+};
+
+export async function getAreasAdmin(): Promise<AdminArea[]> {
+  return api.get('/admin/areas', { auth: true });
+}
+
+export async function createArea(input: {
+  name: string;
+  isActive?: boolean;
+}): Promise<AdminArea> {
+  return api.post('/admin/areas', input, { auth: true });
+}
+
+export async function updateArea(
+  id: string,
+  input: { name?: string; isActive?: boolean },
+): Promise<AdminArea> {
+  return api.patch(`/admin/areas/${id}`, input, { auth: true });
+}
+
+export async function deleteArea(id: string): Promise<{ id: string }> {
+  return api.delete(`/admin/areas/${id}`, { auth: true });
+}

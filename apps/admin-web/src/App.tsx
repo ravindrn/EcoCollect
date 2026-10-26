@@ -7,6 +7,11 @@ import { UsersPage } from './pages/UsersPage';
 import { colors } from './theme/colors';
 import { LiveMapPage } from './pages/LiveMapPage';
 import { TestMapPage } from './pages/TestMapPage';
+import { ComplaintsPage } from './pages/ComplaintsPage';
+import { ComplaintDetailPage } from './pages/ComplaintDetailPage';
+import { AnnouncementsPage } from './pages/AnnouncementsPage';
+import { AreasPage } from './pages/AreasPage';
+
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, initializing } = useAuth();
@@ -56,12 +61,15 @@ export default function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="complaints" element={<Placeholder title="Complaints" />} />
+            <Route path="complaints" element={<ComplaintsPage />} />
             <Route path="users" element={<UsersPage />} />
-            <Route path="announcements" element={<Placeholder title="Announcements" />} />
-            <Route path="areas" element={<Placeholder title="Areas" />} />
+            <Route path="announcements" element={<AnnouncementsPage />} />
+            <Route path="areas" element={<AreasPage />} />
             <Route path="live-map" element={<LiveMapPage />} />
             <Route path="test-map" element={<TestMapPage />} />
+            <Route path="complaints" element={<ComplaintsPage />} />
+            
+<Route path="complaints/:id" element={<ComplaintDetailPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -16,6 +16,9 @@ import { uploadsDir } from "./lib/uploads.js";
 import { adminRouter } from './routes/admin.js';
 import { vehiclesRouter } from './routes/vehicles.js';
 import { adminVehiclesRouter } from './routes/adminVehicles.js';
+import { adminComplaintsRouter } from './routes/adminComplaints.js';
+import { announcementsAdminRouter } from './routes/announcementsAdmin.js';
+import { areasAdminRouter } from './routes/areasAdmin.js';
 
 export function createApp() {
   const app = express();
@@ -47,6 +50,9 @@ export function createApp() {
   app.use('/api/v1/admin', adminRouter);
   app.use('/api/v1/vehicles', vehiclesRouter);
   app.use('/api/v1/admin', adminVehiclesRouter);
+  app.use('/api/v1/admin', adminComplaintsRouter);
+  app.use('/api/v1/admin/announcements', announcementsAdminRouter);
+app.use('/api/v1/admin/areas', areasAdminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
