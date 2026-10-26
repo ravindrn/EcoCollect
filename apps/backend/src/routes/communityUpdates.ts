@@ -1,4 +1,3 @@
-
 import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
@@ -40,11 +39,7 @@ async function getAreaUpdate(id: string, areaId: string) {
   });
 
   if (!update) {
-    throw new HttpError(
-      404,
-      "Community update not found",
-      "NOT_FOUND",
-    );
+    throw new HttpError(404, "Community update not found", "NOT_FOUND");
   }
 
   return update;
@@ -81,9 +76,9 @@ communityUpdatesRouter.get("/", requireAuth, async (req, res, next) => {
       success: true,
       data: updates.map((update) => ({
         id: update.id,
+        userId: update.userId,
         content: update.content,
-        authorName:
-          update.user.citizenProfile?.fullName ?? "Community Member",
+        authorName: update.user.citizenProfile?.fullName ?? "Community Member",
         createdAt: update.createdAt,
         helpfulCount: update._count.reactions,
         commentCount: update._count.comments,
@@ -138,14 +133,151 @@ communityUpdatesRouter.post("/", requireAuth, async (req, res, next) => {
       success: true,
       data: {
         id: update.id,
+        userId: update.userId,
         content: update.content,
-        authorName:
-          update.user.citizenProfile?.fullName ?? "Community Member",
+        authorName: update.user.citizenProfile?.fullName ?? "Community Member",
         createdAt: update.createdAt,
         helpfulCount: update._count.reactions,
         commentCount: update._count.comments,
         isHelpful: false,
       },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Edit a community update.
+ * Only the owner can edit their own update.
+ */
+communityUpdatesRouter.patch("/:id", requireAuth, async (req, res, next) => {
+  try {
+    const userId = req.user!.id;
+    const areaId = await getCitizenArea(userId);
+    const id = req.params.id;
+    const { content } = req.body;
+
+    if (typeof id !== "string") {
+      throw new HttpError(400, "Invalid update ID", "VALIDATION_ERROR");
+    }
+
+    if (
+      typeof content !== "string" ||
+      !content.trim() ||
+      content.trim().length > 1000
+    ) {
+      throw new HttpError(
+        400,
+        "Update content is required and must be at most 1000 characters",
+        "VALIDATION_ERROR",
+      );
+    }
+
+    // Confirm that the update belongs to this citizen's area.
+    await getAreaUpdate(id, areaId);
+
+    // Confirm that the logged-in citizen owns the update.
+    const existingUpdate = await prisma.communityUpdate.findFirst({
+      where: {
+        id,
+        areaId,
+        userId,
+      },
+      select: { id: true },
+    });
+
+    if (!existingUpdate) {
+      throw new HttpError(
+        403,
+        "You can only edit your own community updates",
+        "FORBIDDEN",
+      );
+    }
+
+    const updated = await prisma.communityUpdate.update({
+      where: { id },
+      data: {
+        content: content.trim(),
+      },
+      include: {
+        user: {
+          select: {
+            citizenProfile: {
+              select: { fullName: true },
+            },
+          },
+        },
+        reactions: {
+          where: { userId },
+          select: { id: true },
+        },
+        _count: {
+          select: { reactions: true, comments: true },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        id: updated.id,
+        userId: updated.userId,
+        content: updated.content,
+        authorName: updated.user.citizenProfile?.fullName ?? "Community Member",
+        createdAt: updated.createdAt,
+        helpfulCount: updated._count.reactions,
+        commentCount: updated._count.comments,
+        isHelpful: updated.reactions.length > 0,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * Delete a community update.
+ * Only the owner can delete their own update.
+ */
+communityUpdatesRouter.delete("/:id", requireAuth, async (req, res, next) => {
+  try {
+    const userId = req.user!.id;
+    const areaId = await getCitizenArea(userId);
+    const id = req.params.id;
+
+    if (typeof id !== "string") {
+      throw new HttpError(400, "Invalid update ID", "VALIDATION_ERROR");
+    }
+
+    // Confirm that the update belongs to this citizen's area.
+    await getAreaUpdate(id, areaId);
+
+    // Confirm that the logged-in citizen owns the update.
+    const existingUpdate = await prisma.communityUpdate.findFirst({
+      where: {
+        id,
+        areaId,
+        userId,
+      },
+      select: { id: true },
+    });
+
+    if (!existingUpdate) {
+      throw new HttpError(
+        403,
+        "You can only delete your own community updates",
+        "FORBIDDEN",
+      );
+    }
+
+    await prisma.communityUpdate.delete({
+      where: { id },
+    });
+
+    res.json({
+      success: true,
+      message: "Community update deleted successfully",
     });
   } catch (err) {
     next(err);

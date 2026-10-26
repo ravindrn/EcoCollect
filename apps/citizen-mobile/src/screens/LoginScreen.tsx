@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ScreenContainer } from '../components/ScreenContainer';
@@ -11,22 +11,64 @@ import type { AuthStackParamList } from '../navigation/AuthStack';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-export function LoginScreen({ navigation }: Props) {
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function LoginScreen({ route, navigation }: Props) {
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+  }>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const params = (route.params ?? {}) as {
+    justRegistered?: boolean;
+    email?: string;
+  };
+
+  useEffect(() => {
+    if (params.justRegistered) {
+      setSuccessMessage('Account created. Please sign in.');
+      if (params.email) setEmail(params.email);
+    }
+  }, [params.justRegistered, params.email]);
+
+  const validate = () => {
+    const errors: { email?: string; password?: string } = {};
+    if (!email.trim()) {
+      errors.email = 'Please enter your email.';
+    } else if (!EMAIL_REGEX.test(email.trim())) {
+      errors.email = 'Enter a valid email address.';
+    }
+    if (!password) {
+      errors.password = 'Please enter your password.';
+    }
+    return errors;
+  };
+
   const handleLogin = async () => {
-    setError(null);
+    setGeneralError(null);
+    setSuccessMessage(null);
+
+    const errors = validate();
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) return;
+
     setLoading(true);
     try {
       await signIn(email.trim(), password);
     } catch (err) {
-      const message =
-        err instanceof ApiError ? err.message : 'Unable to sign in';
-      setError(message);
+      if (err instanceof ApiError && err.status === 401) {
+        setGeneralError('Incorrect email or password. Please try again.');
+      } else if (err instanceof ApiError) {
+        setGeneralError(err.message);
+      } else {
+        setGeneralError('Unable to sign in. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -35,48 +77,57 @@ export function LoginScreen({ navigation }: Props) {
   return (
     <ScreenContainer>
       <View style={styles.header}>
-        <View style={styles.logo}>
-          <Text style={styles.logoEmoji}>🌿</Text>
-        </View>
-        <Text style={styles.brand}>EcoCollect</Text>
         <Text style={styles.title}>Welcome back</Text>
-        <Text style={styles.subtitle}>Sign in to manage your pickups</Text>
+        <Text style={styles.subtitle}>Sign in to EcoCollect</Text>
       </View>
 
-      <View style={styles.card}>
-        <TextField
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
-          textContentType="emailAddress"
-          placeholder="you@example.com"
-        />
+      {successMessage ? (
+        <View style={styles.successBox}>
+          <Text style={styles.success}>{successMessage}</Text>
+        </View>
+      ) : null}
 
-        <TextField
-          label="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          textContentType="password"
-          placeholder="••••••••"
-        />
+      <TextField
+        label="Email"
+        value={email}
+        onChangeText={(v) => {
+          setEmail(v);
+          if (fieldErrors.email) {
+            setFieldErrors((prev) => ({ ...prev, email: undefined }));
+          }
+        }}
+        autoCapitalize="none"
+        autoCorrect={false}
+        keyboardType="email-address"
+        placeholder="you@example.com"
+        error={fieldErrors.email}
+      />
 
-        {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.error}>{error}</Text>
-          </View>
-        ) : null}
+      <TextField
+        label="Password"
+        value={password}
+        onChangeText={(v) => {
+          setPassword(v);
+          if (fieldErrors.password) {
+            setFieldErrors((prev) => ({ ...prev, password: undefined }));
+          }
+        }}
+        secureTextEntry
+        placeholder="••••••••"
+        error={fieldErrors.password}
+      />
 
-        <PrimaryButton
-          title="Sign in"
-          onPress={handleLogin}
-          loading={loading}
-          disabled={!email || !password}
-        />
-      </View>
+      {generalError ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.error}>{generalError}</Text>
+        </View>
+      ) : null}
+
+      <PrimaryButton
+        title="Sign in"
+        onPress={handleLogin}
+        loading={loading}
+      />
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>New here? </Text>
@@ -92,39 +143,19 @@ export function LoginScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  header: { marginTop: 24, marginBottom: 28, alignItems: 'center' },
-  logo: {
-    width: 68,
-    height: 68,
-    borderRadius: 22,
+  header: { marginTop: 16, marginBottom: 24 },
+  title: { fontSize: 26, fontWeight: '700', color: colors.textPrimary },
+  subtitle: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
+  successBox: {
     backgroundColor: '#ECFDF3',
     borderWidth: 1,
     borderColor: '#BBF7D0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
   },
-  logoEmoji: { fontSize: 32 },
-  brand: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: 18,
-  },
-  title: { fontSize: 28, fontWeight: '800', color: colors.textPrimary },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  success: { color: colors.success, fontSize: 13, lineHeight: 18 },
   errorBox: {
     backgroundColor: '#FEF2F2',
     borderWidth: 1,
@@ -138,9 +169,8 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: 20,
   },
-  footerText: { color: colors.textSecondary, fontSize: 14 },
-  link: { color: colors.primary, fontWeight: '700', fontSize: 14 },
+  footerText: { color: colors.textSecondary },
+  link: { color: colors.primary, fontWeight: '600' },
 });

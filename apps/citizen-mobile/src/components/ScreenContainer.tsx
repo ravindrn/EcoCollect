@@ -1,9 +1,9 @@
+
 import { ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
   View,
   ViewStyle,
 } from 'react-native';
@@ -16,22 +16,39 @@ type Props = {
   contentStyle?: ViewStyle;
 };
 
-export function ScreenContainer({ children, scroll = true, contentStyle }: Props) {
+export function ScreenContainer({
+  children,
+  scroll = true,
+  contentStyle,
+}: Props) {
   const inner = scroll ? (
     <ScrollView
-      contentContainerStyle={[styles.scrollContent, contentStyle]}
+      className="flex-1"
+      contentContainerStyle={[
+        { flexGrow: 1, padding: 24 },
+        contentStyle,
+      ]}
       keyboardShouldPersistTaps="handled"
     >
       {children}
     </ScrollView>
   ) : (
-    <View style={[styles.flex, contentStyle]}>{children}</View>
+    <View
+      className="flex-1"
+      style={contentStyle}
+    >
+      {children}
+    </View>
   );
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+    <SafeAreaView
+      className="flex-1"
+      style={{ backgroundColor: colors.background }}
+      edges={['top', 'bottom']}
+    >
       <KeyboardAvoidingView
-        style={styles.flex}
+        className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {inner}
@@ -39,9 +56,3 @@ export function ScreenContainer({ children, scroll = true, contentStyle }: Props
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: colors.background },
-  flex: { flex: 1 },
-  scrollContent: { flexGrow: 1, padding: 24 },
-});

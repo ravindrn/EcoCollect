@@ -11,7 +11,7 @@ export function AppHeader({
   onNotificationPress,
 }: AppHeaderProps) {
   return (
-    <View className="mb-4 flex-row items-center justify-between">
+    <View className="mb-4 flex-row items-center justify-between rounded-3xl border border-emerald-100 bg-emerald-50/60 p-3 shadow-sm">
       <View className="flex-1 flex-row items-center">
         {/* Logo tile */}
         <View className="mr-3 h-12 w-12 items-center justify-center rounded-2xl bg-emerald-600 shadow-sm">
@@ -35,7 +35,7 @@ export function AppHeader({
 
       {showNotifications && (
         <Pressable
-          className="relative ml-3 h-11 w-11 items-center justify-center rounded-full border border-gray-100 bg-white shadow-sm"
+          className="relative ml-3 h-11 w-11 items-center justify-center rounded-full border border-emerald-200 bg-white shadow-sm"
           onPress={onNotificationPress}
           accessibilityRole="button"
           accessibilityLabel="Notifications"

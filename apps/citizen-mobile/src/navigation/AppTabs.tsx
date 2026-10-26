@@ -1,16 +1,16 @@
-import { StyleSheet, Text } from 'react-native';
+import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { ComplaintsScreen } from '../screens/ComplaintsScreen';
-import { NewComplaintScreen } from '../screens/NewComplaintScreen';
 import { colors } from '../theme/colors';
+import { LiveMapScreen } from '../screens/LiveMapScreen';
 
 export type AppTabsParamList = {
   Home: undefined;
+  LiveMap: undefined;
   Complaints: undefined;
-  New: undefined;
   Profile: undefined;
 };
 
@@ -20,8 +20,8 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 
 const ICONS: Record<keyof AppTabsParamList, [IoniconName, IoniconName]> = {
   Home: ['home-outline', 'home'],
+  LiveMap: ['map-outline', 'map'],
   Complaints: ['list-outline', 'list'],
-  New: ['add-circle-outline', 'add-circle'],
   Profile: ['person-outline', 'person'],
 };
 
@@ -52,14 +52,14 @@ export function AppTabs() {
         },
         tabBarLabel: ({ color }) => {
           const label =
-            route.name === 'New' ? 'New' : route.name;
+            route.name === 'Complaints' ? 'Complaints' : route.name;
           return <Text style={{ color, fontSize: 11, fontWeight: '600' }}>{label}</Text>;
         },
       })}
     >
       <Tabs.Screen name="Home" component={HomeScreen} />
+      <Tabs.Screen name="LiveMap" component={LiveMapScreen} />
       <Tabs.Screen name="Complaints" component={ComplaintsScreen} />
-      <Tabs.Screen name="New" component={NewComplaintScreen} />
       <Tabs.Screen name="Profile" component={ProfileScreen} />
     </Tabs.Navigator>
   );
