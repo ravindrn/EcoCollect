@@ -19,14 +19,20 @@ function jitter(base: number, delta: number) {
 async function main() {
   console.log('Seeding vehicles and GPS history…');
 
+  const driver = await prisma.user.findUnique({
+    where: { email: 'driver@ecocollect.local' },
+    select: { id: true },
+  });
+
   // Upsert two vehicles by plate number
   const v1 = await prisma.vehicle.upsert({
     where: { plateNumber: 'WP-KA-1234' },
-    update: { isActive: true },
+    update: { isActive: true, driverId: driver?.id ?? null },
     create: {
       plateNumber: 'WP-KA-1234',
       name: 'Truck 1 — Bope',
       isActive: true,
+      driverId: driver?.id ?? null,
     },
   });
 

@@ -6,6 +6,51 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 export const adminVehiclesRouter = Router();
 
 /**
+ * GET /api/v1/admin/route-alerts
+ * Newest route crossings first. Admin uses this to see who is off the route.
+ */
+adminVehiclesRouter.get(
+  '/route-alerts',
+  requireAuth,
+  requireRole('ADMIN'),
+  async (req, res, next) => {
+    try {
+      const queryParsed = z
+        .object({
+          limit: z.coerce.number().int().min(1).max(200).default(50),
+        })
+        .safeParse(req.query);
+      if (!queryParsed.success) throw queryParsed.error;
+
+      const alerts = await prisma.routeAlert.findMany({
+        orderBy: { recordedAt: 'desc' },
+        take: queryParsed.data.limit,
+        include: {
+          vehicle: { select: { id: true, plateNumber: true, name: true } },
+          driver: { select: { id: true, email: true } },
+        },
+      });
+
+      res.json({
+        success: true,
+        data: alerts.map((alert) => ({
+          id: alert.id,
+          kind: alert.kind,
+          routeName: alert.routeName,
+          latitude: alert.latitude,
+          longitude: alert.longitude,
+          recordedAt: alert.recordedAt,
+          vehicle: alert.vehicle,
+          driver: alert.driver,
+        })),
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+/**
  * GET /api/v1/admin/vehicles/live
  * Returns, per vehicle:
  *   - latest position

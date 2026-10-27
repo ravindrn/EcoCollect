@@ -1,4 +1,4 @@
-import type { LiveVehicle } from '../services/adminApi';
+import type { LiveVehicle, RouteAlertKind } from '../services/adminApi';
 import { colors } from '../theme/colors';
 
 type FilterMode = 'all' | 'moving' | 'stopped';
@@ -12,6 +12,7 @@ type Props = {
   onResetView: () => void;
   filter: FilterMode;
   onFilterChange: (mode: FilterMode) => void;
+  routeStatus?: Record<string, RouteAlertKind>;
 };
 
 export function VehicleSidebar({
@@ -23,6 +24,7 @@ export function VehicleSidebar({
   onResetView,
   filter,
   onFilterChange,
+  routeStatus = {},
 }: Props) {
   const movingCount = vehicles.filter((v) => v.isMoving).length;
 
@@ -196,6 +198,18 @@ export function VehicleSidebar({
                     ` · ${v.lastLocation.speed.toFixed(1)} km/h`}
                 </div>
               )}
+              {routeStatus[v.id] ? (
+                <div
+                  style={{
+                    marginTop: 6,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: routeStatus[v.id] === 'OUTSIDE' ? colors.error : colors.success,
+                  }}
+                >
+                  {routeStatus[v.id] === 'OUTSIDE' ? 'Outside the route' : 'Inside the route'}
+                </div>
+              ) : null}
             </button>
           );
         })}

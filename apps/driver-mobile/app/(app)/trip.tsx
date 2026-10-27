@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Text, View } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -14,12 +14,14 @@ import { Screen } from '@/components/ui/Screen'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { fixtureActivityLog, saveActivityLog, segmentMinutes } from '@/services/activity'
-import { leavesCorridor, noteDeviation, type DeviationAlert } from '@/services/corridor'
+import { leavesCorridor, noteDeviation, type CorridorPoint, type DeviationAlert } from '@/services/corridor'
 import { engineOnMs, intervalsFromTrackerPower } from '@/services/engineLog'
 import { useDriverMap } from '@/hooks/useDriverMap'
 import { getMyProfile } from '@/services/profile'
+import { sendRouteAlert } from '@/services/routeAlert'
+import { getMyVehicle } from '@/services/vehicle'
 import { fixtureShift } from '@/services/shiftStats'
-import { trackerPowerForEmail } from '@/services/todayRoute'
+import { todayRouteForEmail, trackerPowerForEmail } from '@/services/todayRoute'
 import { useTrip } from '@/stores/trip'
 
 export default function TripScreen() {
@@ -29,14 +31,19 @@ export default function TripScreen() {
   const intervals = useTrip((state) => state.intervals)
   const queueCount = useTrip((state) => state.queueCount)
   const gpsDenied = useTrip((state) => state.gpsDenied)
-  const [deviationAlerts, setDeviationAlerts] = useState<DeviationAlert[]>([])
-  const [deviationVisible, setDeviationVisible] = useState(false)
+  const liveFix = useTrip((state) => state.liveFix)
+  const [routeNotice, setRouteNotice] = useState<{ tone: 'danger' | 'success'; message: string } | null>(null)
+  const alertsRef = useRef<DeviationAlert[]>([])
   const profileQuery = useQuery({
     queryKey: ['users', 'me'],
     queryFn: getMyProfile,
   })
   const profile = profileQuery.data
-  const tripMap = useDriverMap(profile?.email)
+  const vehicleQuery = useQuery({
+    queryKey: ['vehicles', 'me'],
+    queryFn: getMyVehicle,
+  })
+  const tripMap = useDriverMap(profile?.email, vehicleQuery.data?.lastLocation ?? null)
   const trackerIntervals = intervalsFromTrackerPower(profile ? trackerPowerForEmail(profile.email) : [])
   const activity = fixtureActivityLog()
   const shift = fixtureShift()
@@ -45,21 +52,40 @@ export default function TripScreen() {
     saveActivityLog(fixtureActivityLog())
   }, [])
 
-  function checkDeviation(outside: boolean) {
-    const next = noteDeviation(deviationAlerts, outside)
-    setDeviationAlerts(next.alerts)
-    setDeviationVisible(next.raised || (outside && deviationVisible))
-  }
+  const checkDeviation = useCallback((outside: boolean, point: CorridorPoint) => {
+    const next = noteDeviation(alertsRef.current, outside)
+    alertsRef.current = next.alerts
+    if (!next.status) return
+    const base = next.status === 'OUTSIDE' ? t('deviationAlert') : t('deviationBack')
+    const routeName = profile ? todayRouteForEmail(profile.email)?.routeName ?? null : null
+    void sendRouteAlert({
+      kind: next.status,
+      latitude: point.latitude,
+      longitude: point.longitude,
+      routeName,
+      recordedAt: new Date().toISOString(),
+    }).then((delivery) => {
+      setRouteNotice({
+        tone: next.status === 'OUTSIDE' ? 'danger' : 'success',
+        message: delivery === 'queued' ? `${base}. ${t('deviationQueued')}` : base,
+      })
+    })
+  }, [profile, t])
+
+  useEffect(() => {
+    if (!active || !liveFix || !tripMap || tripMap.path.length < 2) return
+    checkDeviation(leavesCorridor(liveFix, tripMap.path), liveFix)
+  }, [active, liveFix, tripMap, checkDeviation])
 
   return (
     <Screen>
       <GradientHeader title={t('tripTitle')} back />
-      {deviationVisible ? (
+      {routeNotice ? (
         <Card>
-          <Banner tone="danger" message={t('deviationAlert')} />
+          <Banner tone={routeNotice.tone} message={routeNotice.message} />
           <PrimaryButton
             label={t('deviationDismiss')}
-            onPress={() => setDeviationVisible(false)}
+            onPress={() => setRouteNotice(null)}
             style={{ marginTop: theme.spacing.md }}
           />
         </Card>
@@ -104,10 +130,10 @@ export default function TripScreen() {
         {tripMap && tripMap.path.length > 1 ? (
           <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
             <View style={{ flex: 1 }}>
-              <PrimaryButton label={t('deviationOutside')} onPress={() => checkDeviation(leavesCorridor({ latitude: 7, longitude: 80.22 }, tripMap.path))} />
+              <PrimaryButton label={t('deviationOutside')} onPress={() => checkDeviation(leavesCorridor({ latitude: 7, longitude: 80.22 }, tripMap.path), { latitude: 7, longitude: 80.22 })} />
             </View>
             <View style={{ flex: 1 }}>
-              <PrimaryButton label={t('deviationInside')} tone="primary" onPress={() => checkDeviation(leavesCorridor(tripMap.path[0], tripMap.path))} />
+              <PrimaryButton label={t('deviationInside')} tone="primary" onPress={() => checkDeviation(leavesCorridor(tripMap.path[0], tripMap.path), tripMap.path[0])} />
             </View>
           </View>
         ) : null}

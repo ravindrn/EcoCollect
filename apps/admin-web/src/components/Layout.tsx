@@ -10,6 +10,7 @@ const pageTitles: Record<string, string> = {
   '/announcements': 'Announcements',
   '/areas': 'Areas',
   '/live-map': 'Live Map',
+  '/route-alerts': 'Route alerts',
 };
 
 export function Layout() {

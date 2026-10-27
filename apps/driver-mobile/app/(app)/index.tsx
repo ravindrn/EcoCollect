@@ -15,6 +15,7 @@ import { useAppTheme } from '@/hooks/useAppTheme'
 import { useDriverMap } from '@/hooks/useDriverMap'
 import { getMyProfile } from '@/services/profile'
 import { todayRouteForEmail } from '@/services/todayRoute'
+import { getMyVehicle } from '@/services/vehicle'
 import { useTrip } from '@/stores/trip'
 
 export default function HomeScreen() {
@@ -27,8 +28,13 @@ export default function HomeScreen() {
     queryFn: getMyProfile,
   })
   const profile = profileQuery.data
+  const vehicleQuery = useQuery({
+    queryKey: ['vehicles', 'me'],
+    queryFn: getMyVehicle,
+  })
+  const vehicle = vehicleQuery.data
   const route = profile ? todayRouteForEmail(profile.email) : null
-  const tripMap = useDriverMap(profile?.email)
+  const tripMap = useDriverMap(profile?.email, vehicle?.lastLocation ?? null)
   const subtitle = profile?.profile?.fullName || profile?.email || t('shellTitle')
 
   function openTrip() {
@@ -43,7 +49,15 @@ export default function HomeScreen() {
         <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption }}>{t('routeTitle')}</Text>
         {profileQuery.isPending ? <Skeleton label={t('routeLoading')} /> : null}
         {profileQuery.isError ? <ErrorState error={profileQuery.error} onRetry={() => void profileQuery.refetch()} /> : null}
-        {profileQuery.isSuccess && !route ? <EmptyState title={t('routeEmpty')} body={t('emptyRouteBody')} /> : null}
+        {profileQuery.isSuccess && !route && !vehicle ? <EmptyState title={t('routeEmpty')} body={t('emptyRouteBody')} /> : null}
+        {vehicle ? (
+          <View style={{ marginTop: theme.spacing.md }}>
+            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>
+              {vehicle.name ?? vehicle.plateNumber}
+            </Text>
+            <RouteFact label={t('routeTractor')} value={vehicle.plateNumber} />
+          </View>
+        ) : null}
         {route ? (
           <View style={{ marginTop: theme.spacing.md }}>
             <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{route.routeName}</Text>
@@ -70,9 +84,10 @@ export default function HomeScreen() {
           </View>
         ) : null}
       </Card>
-      {route ? (
+      {route || vehicle ? (
         <View style={{ marginHorizontal: theme.spacing.screen, marginBottom: theme.spacing.lg }}>
           <PrimaryButton label={tripActive ? t('tripOpen') : t('tripStart')} onPress={openTrip} />
+          <PrimaryButton label={t('pickupsOpen')} onPress={() => router.push('/pickups')} style={{ marginTop: theme.spacing.md }} />
         </View>
       ) : null}
     </Screen>

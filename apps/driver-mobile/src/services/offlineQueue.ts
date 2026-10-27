@@ -1,5 +1,6 @@
 import { syncActivitylog, type ActivitySegment } from './activity'
 import { flushQueue, type QueuedGpsPoint } from './gpsQueue'
+import { flushRouteAlerts, queuedRouteAlerts } from './routeAlert'
 import { clearWeightDraft, readWeightDraft } from './weightDraft'
 
 const GPS_KEY = 'ecocollect.driver.gpsQueue'
@@ -20,18 +21,21 @@ function readJson<T>(key: string): T[] {
 export function offlineQueue() {
   const gps = readJson<QueuedGpsPoint>(GPS_KEY)
   const activity = readJson<ActivitySegment>(ACTIVITY_KEY)
+  const routeAlerts = queuedRouteAlerts()
   const weightKg = readWeightDraft()
   return {
     gps,
     activity,
+    routeAlerts,
     weightKg,
-    count: gps.length + activity.length + (weightKg === null ? 0 : 1),
+    count: gps.length + activity.length + routeAlerts.length + (weightKg === null ? 0 : 1),
   }
 }
 
-export function retryOfflineQueue(): number {
+export async function retryOfflineQueue(): Promise<number> {
   const online = typeof navigator !== 'undefined' && navigator.onLine
-  flushQueue(online)
+  await flushQueue(online)
+  if (online) await flushRouteAlerts(true)
   syncActivitylog(online)
   clearWeightDraft(online)
   return offlineQueue().count

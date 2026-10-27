@@ -1,3 +1,6 @@
+import { flushRouteAlerts } from './routeAlert'
+import { getMyVehicle, pingVehicle } from './vehicle'
+
 const STORAGE_KEY = 'ecocollect.driver.gpsQueue'
 
 export type QueuedGpsPoint = {
@@ -61,10 +64,24 @@ export function enqueueFix(fix: Fix): number {
   return points.length
 }
 
-export function flushQueue(online: boolean): number {
-  if (!online) return readQueue().length
-  writeQueue([])
-  return 0
+export async function flushQueue(online: boolean): Promise<number> {
+  const points = readQueue()
+  if (!online || points.length === 0) return points.length
+
+  const vehicle = await getMyVehicle().catch(() => null)
+  if (!vehicle) return points.length
+
+  const remaining: QueuedGpsPoint[] = []
+  for (const point of points) {
+    try {
+      await pingVehicle(vehicle.id, point)
+    } catch {
+      remaining.push(point)
+    }
+  }
+  writeQueue(remaining)
+  await flushRouteAlerts(true)
+  return remaining.length
 }
 
 export function watchFixes(onFix: (fix: Fix) => void, onError: (error: unknown) => void): () => void {

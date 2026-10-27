@@ -15,9 +15,9 @@ const RAIL = 76
 const DRAWER = 280
 
 type Item = {
-  href: '/' | '/inbox' | '/weight' | '/queue' | '/trip' | '/profile'
+  href: '/' | '/inbox' | '/weight' | '/queue' | '/trip' | '/pickups' | '/profile'
   label: string
-  icon: 'home' | 'inbox' | 'weight' | 'queue' | 'trip' | 'profile'
+  icon: 'home' | 'inbox' | 'weight' | 'queue' | 'trip' | 'pickups' | 'profile'
 }
 
 export function SideNav({ open, onToggle }: { open: boolean; onToggle: () => void }) {
@@ -48,6 +48,7 @@ export function SideNav({ open, onToggle }: { open: boolean; onToggle: () => voi
     { href: '/weight', label: t('weightTitle'), icon: 'weight' },
     { href: '/queue', label: t('queueTitle'), icon: 'queue' },
     { href: '/trip', label: t('tripTitle'), icon: 'trip' },
+    { href: '/pickups', label: t('pickupsTitle'), icon: 'pickups' },
     { href: '/profile', label: t('profileTitle'), icon: 'profile' },
   ]
   const ink = theme.colors.textPrimary
@@ -224,6 +225,13 @@ function NavIcon({ name, color }: { name: Item['icon'] | 'out'; color: string })
         </>
       ) : null}
       {name === 'trip' ? <Path d="M12 3 C8 3 6 6.5 6 9.5 C6 14 12 21 12 21 C12 21 18 14 18 9.5 C18 6.5 16 3 12 3 Z M12 8 A2 2 0 1 0 12 12 A2 2 0 1 0 12 8 Z" fill={color} /> : null}
+      {name === 'pickups' ? (
+        <>
+          <Path d="M9 6 H15 L14 20 H10 Z" fill={color} />
+          <Rect x={7} y={5} width={10} height={2.2} rx={1} fill={color} />
+          <Rect x={10} y={3} width={4} height={2} rx={1} fill={color} />
+        </>
+      ) : null}
       {name === 'profile' ? (
         <>
           <Circle cx={12} cy={8} r={3.2} fill={color} />

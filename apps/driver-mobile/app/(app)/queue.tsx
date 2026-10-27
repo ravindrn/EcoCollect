@@ -39,6 +39,11 @@ export default function QueueScreen() {
             {t('queueWeight')}: {waiting.weightKg} {t('unitKg')}
           </Text>
         ) : null}
+        {waiting.routeAlerts.map((alert) => (
+          <Text key={alert.id} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+            {t('queueRouteAlert')} {alert.kind === 'OUTSIDE' ? t('deviationOutside') : t('deviationInside')}
+          </Text>
+        ))}
         {waiting.activity.map((segment) => (
           <Text key={segment.id} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
             {t('queueActivity')}{' '}
@@ -48,8 +53,7 @@ export default function QueueScreen() {
         <PrimaryButton
           label={t('queueRetry')}
           onPress={() => {
-            retryOfflineQueue()
-            setWaiting(offlineQueue())
+            void retryOfflineQueue().then(() => setWaiting(offlineQueue()))
           }}
           style={{ marginTop: theme.spacing.xl }}
         />

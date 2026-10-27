@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { gpsSampleIntervalMs } from '@/config/gps'
 import { GpsDeniedError, enqueueFix, flushQueue, readCurrentFix, watchFixes } from '@/services/gpsQueue'
+import { flushRouteAlerts } from '@/services/routeAlert'
 import { useTrip } from '@/stores/trip'
 
 export function useTripSampling() {
@@ -19,7 +20,11 @@ export function useTripSampling() {
       if (!enqueue) return
       const online = typeof navigator !== 'undefined' && navigator.onLine
       const count = enqueueFix(fix)
-      useTrip.getState().setQueueCount(online ? flushQueue(true) : count)
+      if (online) {
+        void flushQueue(true).then((left) => useTrip.getState().setQueueCount(left))
+      } else {
+        useTrip.getState().setQueueCount(count)
+      }
       lastEnqueue = Date.now()
     }
 
@@ -41,7 +46,10 @@ export function useTripSampling() {
     const timer = setInterval(() => {
       if (lastFix) remember(lastFix, true)
     }, gpsSampleIntervalMs)
-    const onOnline = () => useTrip.getState().setQueueCount(flushQueue(true))
+    const onOnline = () => {
+      void flushQueue(true).then((left) => useTrip.getState().setQueueCount(left))
+      void flushRouteAlerts(true)
+    }
     if (typeof window !== 'undefined') window.addEventListener('online', onOnline)
 
     return () => {

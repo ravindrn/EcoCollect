@@ -5,7 +5,7 @@ import { roadGeometry } from '@/services/roadRoute'
 import { pickupsAlongPath, todayMapForEmail } from '@/services/todayRoute'
 import { useTrip } from '@/stores/trip'
 
-export function useDriverMap(email: string | undefined) {
+export function useDriverMap(email: string | undefined, vehiclePoint?: { latitude: number; longitude: number } | null) {
   const liveFix = useTrip((state) => state.liveFix)
   const trail = useTrip((state) => state.trail)
   const active = useTrip((state) => state.active)
@@ -20,18 +20,18 @@ export function useDriverMap(email: string | undefined) {
   const roadPath = roadQuery.data
 
   return useMemo(() => {
-    if (!fixture) return null
+    if (!fixture && !vehiclePoint) return null
     const queued = latestQueuedPoint()
-    const path = roadPath ?? []
+    const path = roadPath ?? fixture?.path ?? (vehiclePoint ? [vehiclePoint] : [])
     return {
       path,
-      pickups: path.length > 1 ? pickupsAlongPath(path, fixture.stopCount) : [],
-      driver: liveFix ?? queued ?? fixture.latest,
+      pickups: path.length > 1 ? pickupsAlongPath(path, fixture?.stopCount ?? 1) : [],
+      driver: liveFix ?? queued ?? vehiclePoint ?? fixture?.latest ?? path[0],
       trail,
       live: Boolean(active && liveFix),
-      routePending: roadQuery.isPending,
+      routePending: roadQuery.isPending && anchorKey.length > 0,
       routeError: roadQuery.isError,
       retryRoute: () => void roadQuery.refetch(),
     }
-  }, [active, fixture, liveFix, roadPath, roadQuery.isError, roadQuery.isPending, trail])
+  }, [active, anchorKey.length, fixture, liveFix, roadPath, roadQuery.isError, roadQuery.isPending, trail, vehiclePoint])
 }

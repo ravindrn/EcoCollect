@@ -5,8 +5,10 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import 'maplibre-gl/dist/maplibre-gl.css';
 import {
   getLiveVehicles,
+  getRouteAlerts,
   getVehicleHistory,
   type LiveVehicle,
+  type RouteAlertKind,
   type VehicleHistory,
 } from '../services/adminApi';
 import { ApiError } from '../services/http';
@@ -104,6 +106,7 @@ export function LiveMapPage() {
   const [lastRefresh, setLastRefresh] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryState>({ kind: 'idle' });
   const [filter, setFilter] = useState<FilterMode>('all');
+  const [routeStatus, setRouteStatus] = useState<Record<string, RouteAlertKind>>({});
 
   // Time slider: 0 = oldest, 100 = now
   const [timePercent, setTimePercent] = useState(100);
@@ -147,9 +150,17 @@ export function LiveMapPage() {
     let cancelled = false;
     const fetchLive = async () => {
       try {
-        const list = await getLiveVehicles();
+        const [list, alerts] = await Promise.all([
+          getLiveVehicles(),
+          getRouteAlerts().catch(() => []),
+        ]);
         if (cancelled) return;
         setVehicles(list);
+        const nextStatus: Record<string, RouteAlertKind> = {};
+        for (const alert of alerts) {
+          if (!nextStatus[alert.vehicle.id]) nextStatus[alert.vehicle.id] = alert.kind;
+        }
+        setRouteStatus(nextStatus);
         setError(null);
         setLastRefresh(
           new Date().toLocaleTimeString([], {
@@ -187,7 +198,12 @@ export function LiveMapPage() {
       if (!v.lastLocation) return;
       seen.add(v.id);
       const { latitude, longitude, heading } = v.lastLocation;
-      const color = v.isMoving ? colors.success : colors.textMuted;
+      const color =
+        routeStatus[v.id] === 'OUTSIDE'
+          ? colors.error
+          : v.isMoving
+            ? colors.success
+            : colors.textMuted;
       const isSelected = v.id === selectedId;
       const key = `${v.id}|${isSelected}|${heading ?? 'x'}|${color}`;
 
@@ -230,7 +246,7 @@ export function LiveMapPage() {
         markersRef.current.delete(id);
       }
     });
-  }, [filteredVehicles, selectedId]);
+  }, [filteredVehicles, selectedId, routeStatus]);
 
   // ---------- Fetch history when selectedId changes ----------
   useEffect(() => {
@@ -413,6 +429,7 @@ export function LiveMapPage() {
         onResetView={resetView}
         filter={filter}
         onFilterChange={setFilter}
+        routeStatus={routeStatus}
       />
 
       <div style={{ flex: 1, position: 'relative', minHeight: 0 }}>
@@ -458,6 +475,17 @@ export function LiveMapPage() {
               }}
             />
             Stopped
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 5,
+                background: colors.error,
+              }}
+            />
+            Off route
           </span>
         </div>
 

@@ -8,6 +8,7 @@ const links = [
   { to: '/announcements', label: 'Announcements', icon: '📢' },
   { to: '/areas', label: 'Areas', icon: '📍' },
   { to: '/live-map', label: 'Live Map', icon: '🗺️' },
+  { to: '/route-alerts', label: 'Route alerts', icon: '🚨' },
 ];
 
 export function Sidebar() {

@@ -153,6 +153,30 @@ export type VehicleHistory = {
   points: VehicleHistoryPoint[];
 };
 
+export type RouteAlertKind = 'OUTSIDE' | 'INSIDE';
+
+export type RouteAlert = {
+  id: string;
+  kind: RouteAlertKind;
+  routeName: string | null;
+  latitude: number;
+  longitude: number;
+  recordedAt: string;
+  vehicle: {
+    id: string;
+    plateNumber: string;
+    name: string | null;
+  };
+  driver: {
+    id: string;
+    email: string;
+  };
+};
+
+export async function getRouteAlerts(): Promise<RouteAlert[]> {
+  return api.get<RouteAlert[]>('/admin/route-alerts', { auth: true });
+}
+
 export async function getLiveVehicles(): Promise<LiveVehicle[]> {
   return api.get<LiveVehicle[]>('/admin/vehicles/live', { auth: true });
 }

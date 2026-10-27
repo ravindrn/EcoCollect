@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
 import { colors } from './theme/colors';
 import { LiveMapPage } from './pages/LiveMapPage';
+import { RouteAlertsPage } from './pages/RouteAlertsPage';
 import { TestMapPage } from './pages/TestMapPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="announcements" element={<Placeholder title="Announcements" />} />
             <Route path="areas" element={<Placeholder title="Areas" />} />
             <Route path="live-map" element={<LiveMapPage />} />
+            <Route path="route-alerts" element={<RouteAlertsPage />} />
             <Route path="test-map" element={<TestMapPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

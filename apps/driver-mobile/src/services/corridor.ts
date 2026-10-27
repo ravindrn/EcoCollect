@@ -35,13 +35,31 @@ export function leavesCorridor(point: CorridorPoint, path: CorridorPoint[], widt
 
 export type DeviationAlert = { id: string; open: boolean }
 
+export type RouteStatus = 'OUTSIDE' | 'INSIDE'
+
 export function noteDeviation(alerts: DeviationAlert[], outside: boolean) {
+  const wasOutside = alerts.some((alert) => alert.open)
   if (!outside) {
-    return { alerts: alerts.map((alert) => ({ ...alert, open: false })), raised: false }
+    if (wasOutside) {
+      return {
+        alerts: alerts.map((alert) => ({ ...alert, open: false })),
+        raised: true,
+        status: 'INSIDE' as const,
+      }
+    }
+    if (alerts.length === 0) {
+      return {
+        alerts: [{ id: 'deviation-1', open: false }],
+        raised: true,
+        status: 'INSIDE' as const,
+      }
+    }
+    return { alerts, raised: false, status: null }
   }
-  if (alerts.some((alert) => alert.open)) return { alerts, raised: false }
+  if (wasOutside) return { alerts, raised: false, status: null }
   return {
     alerts: [...alerts, { id: `deviation-${alerts.length + 1}`, open: true }],
     raised: true,
+    status: 'OUTSIDE' as const,
   }
 }

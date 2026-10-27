@@ -30,13 +30,12 @@ model User {
 
   citizenProfile CitizenProfile?
   complaints     Complaint[]
-  vehicles       Vehicle[]       
- 
+  vehicles       Vehicle[]
+  routeAlerts    RouteAlert[]
 
   communityUpdates CommunityUpdate[]
   communityReactions CommunityReaction[]
   communityComments CommunityComment[]
-  complaints Complaint[]
 
   @@index([role])
   @@index([createdAt])
@@ -161,16 +160,6 @@ model Announcement {
 
 enum ComplaintStatus {
   PENDING
-enum ComplaintCategory {
-  OVERFLOW
-  MISSED_PICKUP
-  ILLEGAL_DUMPING
-  BURNING
-  DAMAGED_BIN
-  OTHER
-}
-
-enum ComplaintStatus {
   OPEN
   IN_PROGRESS
   RESOLVED
@@ -201,25 +190,6 @@ model Complaint {
   @@index([category])
   @@map("complaints")
 }
-  id          String            @id @default(uuid()) @db.Uuid
-  reporterId  String            @map("reporter_id") @db.Uuid
-  category    ComplaintCategory
-  status      ComplaintStatus   @default(OPEN)
-  description String
-  photoUrl    String?           @map("photo_url")
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-
-  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-
-  @@index([reporterId])
-  @@index([status])
-  @@index([category])
-  @@index([createdAt])
-  @@map("complaints")
-}
 
 model Vehicle {
   id          String            @id @default(uuid()) @db.Uuid
@@ -230,8 +200,9 @@ model Vehicle {
   createdAt   DateTime          @default(now()) @map("created_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  driver    User?              @relation(fields: [driverId], references: [id], onDelete: SetNull)
-  locations VehicleLocation[]
+  driver      User?             @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  locations   VehicleLocation[]
+  routeAlerts RouteAlert[]
 
   @@index([isActive])
   @@map("vehicles")
@@ -250,4 +221,27 @@ model VehicleLocation {
 
   @@index([vehicleId, recordedAt])
   @@map("vehicle_locations")
+}
+
+enum RouteAlertKind {
+  OUTSIDE
+  INSIDE
+}
+
+model RouteAlert {
+  id         String         @id @default(uuid()) @db.Uuid
+  vehicleId  String         @map("vehicle_id") @db.Uuid
+  driverId   String         @map("driver_id") @db.Uuid
+  kind       RouteAlertKind
+  routeName  String?        @map("route_name")
+  latitude   Float
+  longitude  Float
+  recordedAt DateTime       @default(now()) @map("recorded_at")
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  driver  User    @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, recordedAt])
+  @@index([recordedAt])
+  @@map("route_alerts")
 }
