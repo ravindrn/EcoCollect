@@ -21,8 +21,7 @@ adminRouter.get(
           prisma.user.count({ where: { role: 'CITIZEN' } }),
           prisma.user.count({ where: { role: 'DRIVER' } }),
           prisma.user.count({ where: { role: 'ADMIN' } }),
-          prisma.complaint.count({ where: { status: 'OPEN' } }),
-          prisma.complaint.count(),
+          prisma.complaint.count({ where: { status: 'PENDING' } }),          prisma.complaint.count(),
         ]);
 
       res.json({

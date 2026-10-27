@@ -7,7 +7,9 @@ datasource db {
   provider = "postgresql"
 }
 
+// ---------------------------------------------------------------------------
 // Enums
+// ---------------------------------------------------------------------------
 
 enum Role {
   CITIZEN
@@ -15,9 +17,28 @@ enum Role {
   ADMIN
 }
 
+enum AnnouncementPriority {
+  NORMAL
+  IMPORTANT
+  URGENT
+}
 
+enum AnnouncementStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
 
+enum ComplaintStatus {
+  PENDING
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+// ---------------------------------------------------------------------------
 // User & CitizenProfile
+// ---------------------------------------------------------------------------
 
 model User {
   id           String   @id @default(uuid()) @db.Uuid
@@ -28,15 +49,12 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  citizenProfile CitizenProfile?
-  complaints     Complaint[]
-  vehicles       Vehicle[]       
- 
-
-  communityUpdates CommunityUpdate[]
+  citizenProfile     CitizenProfile?
+  vehicles           Vehicle[]
+  complaints         Complaint[]
+  communityUpdates   CommunityUpdate[]
   communityReactions CommunityReaction[]
-  communityComments CommunityComment[]
-  complaints Complaint[]
+  communityComments  CommunityComment[]
 
   @@index([role])
   @@index([createdAt])
@@ -50,14 +68,17 @@ model CitizenProfile {
   phone        String?
   address      String?
   wardDivision String?  @map("ward_division")
-  areaId String? @map("area_id") @db.Uuid
-  area   Area?   @relation(fields: [areaId],references: [id],onDelete: Restrict)
+  areaId       String?  @map("area_id") @db.Uuid
+  area         Area?    @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  placeId      String?  @map("place_id") @db.Uuid
+  place        Place?   @relation(fields: [placeId], references: [id], onDelete: SetNull)
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([wardDivision])
   @@index([areaId])
+  @@index([placeId])
   @@map("citizen_profiles")
 }
 
@@ -75,12 +96,17 @@ model Area {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  citizenProfiles CitizenProfile[]
-  communityUpdates CommunityUpdate[]
+  citizenProfiles     CitizenProfile[]
+  communityUpdates    CommunityUpdate[]
+  places              Place[]
+  collectionSchedules CollectionSchedule[]   // ← NEW
 
   @@map("areas")
 }
 
+// ---------------------------------------------------------------------------
+// Community
+// ---------------------------------------------------------------------------
 
 model CommunityUpdate {
   id        String   @id @default(uuid()) @db.Uuid
@@ -109,7 +135,6 @@ model CommunityReaction {
   update CommunityUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
   user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // One Helpful reaction per user for each update.
   @@unique([updateId, userId])
   @@index([userId])
   @@map("community_reactions")
@@ -131,19 +156,9 @@ model CommunityComment {
   @@map("community_comments")
 }
 
-
-
-enum AnnouncementPriority {
-  NORMAL
-  IMPORTANT
-  URGENT
-}
-
-enum AnnouncementStatus {
-  DRAFT
-  PUBLISHED
-  ARCHIVED
-}
+// ---------------------------------------------------------------------------
+// Announcements
+// ---------------------------------------------------------------------------
 
 model Announcement {
   id          String               @id @default(uuid()) @db.Uuid
@@ -159,78 +174,49 @@ model Announcement {
   @@map("announcements")
 }
 
-enum ComplaintStatus {
-  PENDING
-enum ComplaintCategory {
-  OVERFLOW
-  MISSED_PICKUP
-  ILLEGAL_DUMPING
-  BURNING
-  DAMAGED_BIN
-  OTHER
-}
-
-enum ComplaintStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-  REJECTED
-}
+// ---------------------------------------------------------------------------
+// Complaints
+// ---------------------------------------------------------------------------
 
 model Complaint {
-  id          String          @id @default(uuid()) @db.Uuid
+  id          String @id @default(uuid()) @db.Uuid
   category    String
-  title       String          @db.VarChar(100)
-  description String          @db.Text
+  title       String @db.VarChar(100)
+  description String @db.Text
 
   isAnonymous Boolean         @default(false) @map("is_anonymous")
   status      ComplaintStatus @default(PENDING)
 
-  userId      String?         @map("user_id") @db.Uuid
-  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @map("user_id") @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
 
-  latitude    Float?
-  longitude   Float?
-  photoUrl    String?         @map("photo_url")
+  latitude  Float?
+  longitude Float?
+  photoUrl  String? @map("photo_url")
 
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([userId, createdAt])
   @@index([status, createdAt])
   @@index([category])
   @@map("complaints")
 }
-  id          String            @id @default(uuid()) @db.Uuid
-  reporterId  String            @map("reporter_id") @db.Uuid
-  category    ComplaintCategory
-  status      ComplaintStatus   @default(OPEN)
-  description String
-  photoUrl    String?           @map("photo_url")
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
 
-  reporter User @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-
-  @@index([reporterId])
-  @@index([status])
-  @@index([category])
-  @@index([createdAt])
-  @@map("complaints")
-}
+// ---------------------------------------------------------------------------
+// Vehicles
+// ---------------------------------------------------------------------------
 
 model Vehicle {
-  id          String            @id @default(uuid()) @db.Uuid
-  plateNumber String            @unique @map("plate_number")
+  id          String   @id @default(uuid()) @db.Uuid
+  plateNumber String   @unique @map("plate_number")
   name        String?
-  driverId    String?           @map("driver_id") @db.Uuid
-  isActive    Boolean           @default(true) @map("is_active")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
+  driverId    String?  @map("driver_id") @db.Uuid
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
-  driver    User?              @relation(fields: [driverId], references: [id], onDelete: SetNull)
+  driver    User?             @relation(fields: [driverId], references: [id], onDelete: SetNull)
   locations VehicleLocation[]
 
   @@index([isActive])
@@ -250,4 +236,44 @@ model VehicleLocation {
 
   @@index([vehicleId, recordedAt])
   @@map("vehicle_locations")
+}
+
+// ---------------------------------------------------------------------------
+// Places (roads, junctions, landmarks within each route)
+// ---------------------------------------------------------------------------
+
+model Place {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  areaId    String   @map("area_id") @db.Uuid
+  area      Area     @relation(fields: [areaId], references: [id], onDelete: Restrict)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  citizenProfiles CitizenProfile[]
+
+  @@index([areaId])
+  @@index([name])
+  @@map("places")
+}
+
+
+// ---------------------------------------------------------------------------
+// Collection Schedules
+// ---------------------------------------------------------------------------
+
+model CollectionSchedule {
+  id        String   @id @default(uuid()) @db.Uuid
+  areaId    String   @map("area_id") @db.Uuid
+  area      Area     @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  dayOfWeek Int      @map("day_of_week")  // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime String   @map("start_time")   // "05:00"
+  vehicle   String?                            // "RI 3117 Tractor"
+  driver    String?                            // "Mr. Sujith"
+  workers   String?                            // "Mr. E.G. Suranga, Mr. N.W.A. Ruwan"
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([areaId, dayOfWeek])
+  @@map("collection_schedules")
 }

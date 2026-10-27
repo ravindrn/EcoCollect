@@ -5,17 +5,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 
 export const adminComplaintsRouter = Router();
 
-const CATEGORIES = [
-  'OVERFLOW',
-  'MISSED_PICKUP',
-  'ILLEGAL_DUMPING',
-  'BURNING',
-  'DAMAGED_BIN',
-  'OTHER',
-] as const;
-
-const STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'] as const;
-
+const STATUSES = ['PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'] as const;
 // ---------------------------------------------------------------------------
 // List all complaints (admin only, paginated, filterable)
 // ---------------------------------------------------------------------------
@@ -24,7 +14,8 @@ const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(STATUSES).optional(),
-  category: z.enum(CATEGORIES).optional(),
+  category: z.string().max(50).optional(),
+  anonymous: z.enum(['true', 'false']).optional(),
   q: z.string().max(200).optional(),
 });
 
@@ -37,14 +28,16 @@ adminComplaintsRouter.get(
       const parsed = listQuerySchema.safeParse(req.query);
       if (!parsed.success) throw parsed.error;
 
-      const { page, pageSize, status, category, q } = parsed.data;
+      const { page, pageSize, status, category, anonymous, q } = parsed.data;
 
       const where: {
         status?: (typeof STATUSES)[number];
-        category?: (typeof CATEGORIES)[number];
+        category?: string;
+        isAnonymous?: boolean;
         OR?: Array<{
+          title?: { contains: string; mode: 'insensitive' };
           description?: { contains: string; mode: 'insensitive' };
-          reporter?: {
+          user?: {
             email?: { contains: string; mode: 'insensitive' };
             citizenProfile?: {
               is: { fullName?: { contains: string; mode: 'insensitive' } };
@@ -55,17 +48,17 @@ adminComplaintsRouter.get(
 
       if (status) where.status = status;
       if (category) where.category = category;
+      if (anonymous) where.isAnonymous = anonymous === 'true';
       if (q && q.trim()) {
         const term = q.trim();
         where.OR = [
+          { title: { contains: term, mode: 'insensitive' } },
           { description: { contains: term, mode: 'insensitive' } },
           {
-            reporter: {
-              email: { contains: term, mode: 'insensitive' },
-            },
+            user: { email: { contains: term, mode: 'insensitive' } },
           },
           {
-            reporter: {
+            user: {
               citizenProfile: {
                 is: { fullName: { contains: term, mode: 'insensitive' } },
               },
@@ -81,7 +74,7 @@ adminComplaintsRouter.get(
           skip: (page - 1) * pageSize,
           take: pageSize,
           include: {
-            reporter: {
+            user: {
               select: {
                 id: true,
                 email: true,
@@ -97,7 +90,6 @@ adminComplaintsRouter.get(
           },
         }),
         prisma.complaint.count({ where }),
-        // Global counts per status (unfiltered) for the tab badges
         prisma.complaint.groupBy({
           by: ['status'],
           _count: { _all: true },
@@ -109,21 +101,25 @@ adminComplaintsRouter.get(
         data: {
           items: items.map((c) => ({
             id: c.id,
+            title: c.title,
             category: c.category,
             status: c.status,
             description: c.description,
             photoUrl: c.photoUrl,
             latitude: c.latitude,
             longitude: c.longitude,
+            isAnonymous: c.isAnonymous,
             createdAt: c.createdAt,
             updatedAt: c.updatedAt,
-            reporter: {
-              id: c.reporter.id,
-              email: c.reporter.email,
-              fullName: c.reporter.citizenProfile?.fullName ?? null,
-              phone: c.reporter.citizenProfile?.phone ?? null,
-              wardDivision: c.reporter.citizenProfile?.wardDivision ?? null,
-            },
+            user: c.user
+              ? {
+                  id: c.user.id,
+                  email: c.user.email,
+                  fullName: c.user.citizenProfile?.fullName ?? null,
+                  phone: c.user.citizenProfile?.phone ?? null,
+                  wardDivision: c.user.citizenProfile?.wardDivision ?? null,
+                }
+              : null,
           })),
           meta: {
             page,
@@ -164,7 +160,7 @@ adminComplaintsRouter.get(
       const complaint = await prisma.complaint.findUnique({
         where: { id: paramsParsed.data.id },
         include: {
-          reporter: {
+          user: {
             select: {
               id: true,
               email: true,
@@ -191,21 +187,25 @@ adminComplaintsRouter.get(
         success: true,
         data: {
           id: complaint.id,
+          title: complaint.title,
           category: complaint.category,
           status: complaint.status,
           description: complaint.description,
           photoUrl: complaint.photoUrl,
           latitude: complaint.latitude,
           longitude: complaint.longitude,
+          isAnonymous: complaint.isAnonymous,
           createdAt: complaint.createdAt,
           updatedAt: complaint.updatedAt,
-          reporter: {
-            id: complaint.reporter.id,
-            email: complaint.reporter.email,
-            fullName: complaint.reporter.citizenProfile?.fullName ?? null,
-            phone: complaint.reporter.citizenProfile?.phone ?? null,
-            wardDivision: complaint.reporter.citizenProfile?.wardDivision ?? null,
-          },
+          user: complaint.user
+            ? {
+                id: complaint.user.id,
+                email: complaint.user.email,
+                fullName: complaint.user.citizenProfile?.fullName ?? null,
+                phone: complaint.user.citizenProfile?.phone ?? null,
+                wardDivision: complaint.user.citizenProfile?.wardDivision ?? null,
+              }
+            : null,
         },
       });
     } catch (err) {
@@ -255,7 +255,6 @@ adminComplaintsRouter.patch(
         success: true,
         data: {
           id: updated.id,
-          category: updated.category,
           status: updated.status,
           updatedAt: updated.updatedAt,
         },
