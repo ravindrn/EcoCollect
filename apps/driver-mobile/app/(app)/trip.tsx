@@ -127,16 +127,6 @@ export default function TripScreen() {
           onPress={() => (active ? useTrip.getState().stop() : useTrip.getState().start())}
           style={{ marginTop: theme.spacing.lg }}
         />
-        {tripMap && tripMap.path.length > 1 ? (
-          <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
-            <View style={{ flex: 1 }}>
-              <PrimaryButton label={t('deviationOutside')} onPress={() => checkDeviation(leavesCorridor({ latitude: 7, longitude: 80.22 }, tripMap.path), { latitude: 7, longitude: 80.22 })} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <PrimaryButton label={t('deviationInside')} tone="primary" onPress={() => checkDeviation(leavesCorridor(tripMap.path[0], tripMap.path), tripMap.path[0])} />
-            </View>
-          </View>
-        ) : null}
       </Card>
       <Card delay={70}>
         <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{t('engineLog')}</Text>
