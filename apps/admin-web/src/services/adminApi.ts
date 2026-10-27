@@ -184,25 +184,31 @@ export type ComplaintCategory =
   | 'DAMAGED_BIN'
   | 'OTHER';
 
-export type ComplaintStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+// ---------------------------------------------------------------------------
+// Complaints (aligned with merged schema)
+// ---------------------------------------------------------------------------
+
+export type ComplaintStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
 
 export type AdminComplaintItem = {
   id: string;
-  category: ComplaintCategory;
+  title: string;
+  category: string;
   status: ComplaintStatus;
   description: string;
   photoUrl: string | null;
   latitude: number | null;
   longitude: number | null;
+  isAnonymous: boolean;
   createdAt: string;
   updatedAt: string;
-  reporter: {
+  user: {
     id: string;
     email: string;
     fullName: string | null;
     phone: string | null;
     wardDivision: string | null;
-  };
+  } | null;
 };
 
 export type ComplaintsListResult = {
@@ -220,7 +226,8 @@ export type ComplaintsQuery = {
   page?: number;
   pageSize?: number;
   status?: ComplaintStatus;
-  category?: ComplaintCategory;
+  category?: string;
+  anonymous?: 'true' | 'false';
   q?: string;
 };
 
@@ -232,6 +239,7 @@ export async function getComplaints(
   if (params.pageSize) search.set('pageSize', String(params.pageSize));
   if (params.status) search.set('status', params.status);
   if (params.category) search.set('category', params.category);
+  if (params.anonymous) search.set('anonymous', params.anonymous);
   if (params.q) search.set('q', params.q);
   const qs = search.toString();
   return api.get<ComplaintsListResult>(
@@ -255,11 +263,8 @@ export async function updateComplaintStatus(
   );
 }
 
-/** Resolve a complaint photo URL from the backend into an absolute URL. */
 export function resolvePhotoUrl(photoUrl: string | null): string | null {
   if (!photoUrl) return null;
-  // Backend returns relative paths like /uploads/xxx.jpg
-  // env.apiBaseUrl is like http://localhost:4000/api/v1
   const base = import.meta.env.VITE_API_BASE_URL ?? '';
   const origin = base.replace(/\/api\/v1\/?$/, '');
   return `${origin}${photoUrl}`;

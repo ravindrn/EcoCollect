@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   getComplaints,
-  type ComplaintCategory,
   type ComplaintStatus,
   type ComplaintsListResult,
 } from '../services/adminApi';
@@ -15,29 +14,39 @@ type State =
   | { kind: 'ok'; result: ComplaintsListResult }
   | { kind: 'error'; message: string };
 
-const STATUSES: { key: ComplaintStatus | 'ALL'; label: string }[] = [
+const STATUS_TABS: { key: ComplaintStatus | 'ALL'; label: string }[] = [
   { key: 'ALL', label: 'All' },
-  { key: 'OPEN', label: 'Open' },
+  { key: 'PENDING', label: 'Pending' },
   { key: 'IN_PROGRESS', label: 'In progress' },
   { key: 'RESOLVED', label: 'Resolved' },
   { key: 'REJECTED', label: 'Rejected' },
 ];
 
-const CATEGORIES: { key: ComplaintCategory | 'ALL'; label: string }[] = [
-  { key: 'ALL', label: 'All categories' },
-  { key: 'OVERFLOW', label: 'Overflow' },
-  { key: 'MISSED_PICKUP', label: 'Missed pickup' },
-  { key: 'ILLEGAL_DUMPING', label: 'Illegal dumping' },
-  { key: 'BURNING', label: 'Burning waste' },
-  { key: 'DAMAGED_BIN', label: 'Damaged bin' },
-  { key: 'OTHER', label: 'Other' },
+const CATEGORIES = [
+  'ALL',
+  'OVERFLOW',
+  'MISSED_PICKUP',
+  'ILLEGAL_DUMPING',
+  'BURNING',
+  'DAMAGED_BIN',
+  'OTHER',
 ];
+
+const CATEGORY_LABELS: Record<string, string> = {
+  ALL: 'All categories',
+  OVERFLOW: 'Overflow',
+  MISSED_PICKUP: 'Missed pickup',
+  ILLEGAL_DUMPING: 'Illegal dumping',
+  BURNING: 'Burning waste',
+  DAMAGED_BIN: 'Damaged bin',
+  OTHER: 'Other',
+};
 
 export function ComplaintsPage() {
   const navigate = useNavigate();
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [status, setStatus] = useState<ComplaintStatus | 'ALL'>('ALL');
-  const [category, setCategory] = useState<ComplaintCategory | 'ALL'>('ALL');
+  const [category, setCategory] = useState<string>('ALL');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -83,7 +92,6 @@ export function ComplaintsPage() {
         </p>
       </section>
 
-      {/* Tabs */}
       <div
         style={{
           display: 'flex',
@@ -92,7 +100,7 @@ export function ComplaintsPage() {
           overflowX: 'auto',
         }}
       >
-        {STATUSES.map((s) => {
+        {STATUS_TABS.map((s) => {
           const active = status === s.key;
           const count =
             s.key === 'ALL'
@@ -149,7 +157,6 @@ export function ComplaintsPage() {
         })}
       </div>
 
-      {/* Filters */}
       <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <input
           type="search"
@@ -158,7 +165,7 @@ export function ComplaintsPage() {
             setSearch(e.target.value);
             setPage(1);
           }}
-          placeholder="Search description or reporter"
+          placeholder="Search title, description, or reporter"
           style={{
             flex: 1,
             minWidth: 240,
@@ -175,7 +182,7 @@ export function ComplaintsPage() {
         <select
           value={category}
           onChange={(e) => {
-            setCategory(e.target.value as ComplaintCategory | 'ALL');
+            setCategory(e.target.value);
             setPage(1);
           }}
           style={{
@@ -190,8 +197,8 @@ export function ComplaintsPage() {
           }}
         >
           {CATEGORIES.map((c) => (
-            <option key={c.key} value={c.key}>
-              {c.label}
+            <option key={c} value={c}>
+              {CATEGORY_LABELS[c]}
             </option>
           ))}
         </select>
@@ -231,9 +238,7 @@ export function ComplaintsPage() {
               style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}
             >
               <thead>
-                <tr
-                  style={{ background: colors.background, textAlign: 'left' }}
-                >
+                <tr style={{ background: colors.background, textAlign: 'left' }}>
                   <th style={thStyle}>Complaint</th>
                   <th style={thStyle}>Reporter</th>
                   <th style={thStyle}>Category</th>
@@ -255,8 +260,20 @@ export function ComplaintsPage() {
                     <td style={tdStyle}>
                       <div
                         style={{
-                          fontWeight: 600,
+                          fontWeight: 700,
                           color: colors.textPrimary,
+                          maxWidth: 360,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {c.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: colors.textMuted,
                           maxWidth: 360,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -265,24 +282,37 @@ export function ComplaintsPage() {
                       >
                         {c.description}
                       </div>
-                      <div
-                        style={{ fontSize: 12, color: colors.textMuted }}
-                      >
+                      <div style={{ fontSize: 11, color: colors.textMuted }}>
                         {c.photoUrl ? '📷 has photo' : 'no photo'}
                         {c.latitude != null ? ' · 📍 has location' : ''}
                       </div>
                     </td>
                     <td style={tdStyle}>
-                      <div style={{ fontWeight: 600, color: colors.textPrimary }}>
-                        {c.reporter.fullName ?? '—'}
-                      </div>
-                      <div style={{ fontSize: 12, color: colors.textMuted }}>
-                        {c.reporter.email}
-                      </div>
-                      {c.reporter.phone && (
-                        <div style={{ fontSize: 12, color: colors.textMuted }}>
-                          {c.reporter.phone}
-                        </div>
+                      {c.user ? (
+                        <>
+                          <div
+                            style={{
+                              fontWeight: 600,
+                              color: colors.textPrimary,
+                            }}
+                          >
+                            {c.user.fullName ?? '—'}
+                          </div>
+                          <div style={{ fontSize: 12, color: colors.textMuted }}>
+                            {c.user.email}
+                          </div>
+                          {c.user.phone && (
+                            <div
+                              style={{ fontSize: 12, color: colors.textMuted }}
+                            >
+                              {c.user.phone}
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span style={{ color: colors.textMuted, fontStyle: 'italic' }}>
+                          {c.isAnonymous ? 'Anonymous' : '—'}
+                        </span>
                       )}
                     </td>
                     <td style={tdStyle}>

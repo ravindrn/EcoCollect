@@ -23,12 +23,11 @@ type State =
   | { kind: 'error'; message: string };
 
 const STATUS_BUTTONS: { key: ComplaintStatus; label: string }[] = [
-  { key: 'OPEN', label: 'Open' },
+  { key: 'PENDING', label: 'Pending' },
   { key: 'IN_PROGRESS', label: 'In progress' },
   { key: 'RESOLVED', label: 'Resolved' },
   { key: 'REJECTED', label: 'Rejected' },
 ];
-
 export function ComplaintDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,7 +37,6 @@ export function ComplaintDetailPage() {
   const [state, setState] = useState<State>({ kind: 'loading' });
   const [updating, setUpdating] = useState(false);
 
-  // Fetch complaint
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -52,9 +50,7 @@ export function ComplaintDetailPage() {
           setState({
             kind: 'error',
             message:
-              err instanceof ApiError
-                ? err.message
-                : 'Failed to load complaint',
+              err instanceof ApiError ? err.message : 'Failed to load complaint',
           });
         }
       }
@@ -64,15 +60,9 @@ export function ComplaintDetailPage() {
     };
   }, [id]);
 
-  // Mini-map for location
   useEffect(() => {
     if (state.kind !== 'ok') return;
-    if (
-      state.complaint.latitude == null ||
-      state.complaint.longitude == null
-    ) {
-      return;
-    }
+    if (state.complaint.latitude == null || state.complaint.longitude == null) return;
     if (!mapContainer.current || mapRef.current) return;
 
     const center: [number, number] = [
@@ -191,7 +181,7 @@ export function ComplaintDetailPage() {
               margin: 0,
             }}
           >
-            Complaint #{c.id.slice(0, 8)}
+            {c.title}
           </h2>
           <p
             style={{
@@ -203,8 +193,22 @@ export function ComplaintDetailPage() {
             Submitted {new Date(c.createdAt).toLocaleString()}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <CategoryBadge category={c.category} />
+          {c.isAnonymous && (
+            <span
+              style={{
+                background: colors.background,
+                color: colors.textMuted,
+                padding: '3px 10px',
+                borderRadius: 999,
+                fontSize: 12,
+                fontWeight: 600,
+              }}
+            >
+              Anonymous
+            </span>
+          )}
           <StatusBadge status={c.status} />
         </div>
       </div>
@@ -216,7 +220,6 @@ export function ComplaintDetailPage() {
           gap: 20,
         }}
       >
-        {/* Left column: details */}
         <div
           style={{
             background: colors.surface,
@@ -245,26 +248,34 @@ export function ComplaintDetailPage() {
           <div>
             <div style={labelStyle}>Category</div>
             <div style={{ fontSize: 15, color: colors.textPrimary }}>
-              {CATEGORY_LABELS[c.category]}
+              {CATEGORY_LABELS[c.category] ?? c.category}
             </div>
           </div>
 
           <div>
             <div style={labelStyle}>Reported by</div>
-            <div style={{ fontSize: 15, color: colors.textPrimary }}>
-              {c.reporter.fullName ?? '—'}
-            </div>
-            <div style={{ fontSize: 13, color: colors.textSecondary }}>
-              {c.reporter.email}
-            </div>
-            {c.reporter.phone && (
-              <div style={{ fontSize: 13, color: colors.textSecondary }}>
-                {c.reporter.phone}
-              </div>
-            )}
-            {c.reporter.wardDivision && (
-              <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
-                Ward: {c.reporter.wardDivision}
+            {c.user ? (
+              <>
+                <div style={{ fontSize: 15, color: colors.textPrimary }}>
+                  {c.user.fullName ?? '—'}
+                </div>
+                <div style={{ fontSize: 13, color: colors.textSecondary }}>
+                  {c.user.email}
+                </div>
+                {c.user.phone && (
+                  <div style={{ fontSize: 13, color: colors.textSecondary }}>
+                    {c.user.phone}
+                  </div>
+                )}
+                {c.user.wardDivision && (
+                  <div style={{ fontSize: 13, color: colors.textMuted, marginTop: 4 }}>
+                    Ward: {c.user.wardDivision}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{ fontSize: 15, color: colors.textMuted, fontStyle: 'italic' }}>
+                {c.isAnonymous ? 'Anonymous report' : 'Unknown reporter'}
               </div>
             )}
           </div>
@@ -301,7 +312,6 @@ export function ComplaintDetailPage() {
           </div>
         </div>
 
-        {/* Right column: photo + map */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {photoAbs && (
             <div

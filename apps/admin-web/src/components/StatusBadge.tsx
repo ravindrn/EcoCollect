@@ -1,20 +1,17 @@
-import type {
-  ComplaintCategory,
-  ComplaintStatus,
-} from '../services/adminApi';
+import type { ComplaintStatus } from '../services/adminApi';
 import { colors } from '../theme/colors';
 
 const STATUS_STYLES: Record<
   ComplaintStatus,
   { bg: string; fg: string; label: string }
 > = {
-  OPEN: { bg: colors.warningSoft, fg: colors.warning, label: 'Open' },
+  PENDING: { bg: '#F1F5F9', fg: colors.textSecondary, label: 'Pending' },
   IN_PROGRESS: { bg: colors.infoSoft, fg: colors.info, label: 'In progress' },
   RESOLVED: { bg: colors.successSoft, fg: colors.success, label: 'Resolved' },
   REJECTED: { bg: colors.errorSoft, fg: colors.error, label: 'Rejected' },
 };
 
-const CATEGORY_LABELS: Record<ComplaintCategory, string> = {
+const CATEGORY_LABELS: Record<string, string> = {
   OVERFLOW: 'Overflow',
   MISSED_PICKUP: 'Missed pickup',
   ILLEGAL_DUMPING: 'Illegal dumping',
@@ -42,7 +39,7 @@ export function StatusBadge({ status }: { status: ComplaintStatus }) {
   );
 }
 
-export function CategoryBadge({ category }: { category: ComplaintCategory }) {
+export function CategoryBadge({ category }: { category: string }) {
   return (
     <span
       style={{
@@ -54,7 +51,7 @@ export function CategoryBadge({ category }: { category: ComplaintCategory }) {
         fontWeight: 600,
       }}
     >
-      {CATEGORY_LABELS[category]}
+      {CATEGORY_LABELS[category] ?? category}
     </span>
   );
 }
