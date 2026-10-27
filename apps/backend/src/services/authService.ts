@@ -8,9 +8,9 @@ export type RegisterInput = {
   password: string;
   fullName: string;
   phone: string;
+  placeId: string;
   address?: string;
   wardDivision?: string;
-  areaId: string;
 };
 
 export type LoginInput = {
@@ -33,7 +33,16 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
-    throw new HttpError(409, "Email already registered", "EMAIL_TAKEN");
+    throw new HttpError(409, 'Email already registered', 'EMAIL_TAKEN');
+  }
+
+  // Resolve place → area
+  const place = await prisma.place.findUnique({
+    where: { id: input.placeId },
+    include: { area: true },
+  });
+  if (!place) {
+    throw new HttpError(400, 'Invalid area selected', 'INVALID_PLACE');
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -42,16 +51,15 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
     data: {
       email,
       passwordHash,
-      role: "CITIZEN",
+      role: 'CITIZEN',
       citizenProfile: {
         create: {
           fullName: input.fullName.trim(),
           phone: input.phone.trim(),
           address: input.address?.trim() || null,
           wardDivision: input.wardDivision?.trim() || null,
-          area: {
-            connect: { id: input.areaId },
-          },
+          placeId: place.id,
+          areaId: place.area.id,
         },
       },
     },

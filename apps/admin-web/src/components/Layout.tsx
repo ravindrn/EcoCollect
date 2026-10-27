@@ -16,7 +16,9 @@ export function Layout() {
   const { user, signOut } = useAuth();
   const { pathname } = useLocation();
 
-  const title = pageTitles[pathname] ?? 'Admin';
+  const title =
+  pageTitles[pathname] ??
+  (pathname.startsWith('/complaints/') ? 'Complaint Detail' : 'Admin');
   const initial = (user?.email ?? '?').trim().charAt(0).toUpperCase();
   const isMapRoute = pathname === '/live-map';
 
