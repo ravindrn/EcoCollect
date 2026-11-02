@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { HttpError } from "../middleware/error.js";
+import { sendAnnouncementPush } from "../services/pushNotifications.js";
 
 export const announcementsRouter = Router();
 
@@ -156,6 +157,30 @@ announcementsRouter.patch(
             : {}),
         },
       });
+
+      const isFirstPublish =
+        existing.status !== "PUBLISHED" && announcement.status === "PUBLISHED";
+
+      if (
+        isFirstPublish &&
+        (announcement.priority === "IMPORTANT" ||
+          announcement.priority === "URGENT")
+      ) {
+        // Do not fail the publish request if notification processing fails.
+        try {
+          await sendAnnouncementPush({
+            id: announcement.id,
+            title: announcement.title,
+            description: announcement.description,
+            priority: announcement.priority,
+          });
+        } catch (error) {
+          console.error(
+            "[Announcements] Published successfully, but push processing failed:",
+            error,
+          );
+        }
+      }
 
       res.json({
         success: true,

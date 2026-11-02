@@ -8,7 +8,7 @@ import {
 } from 'react-leaflet';
 import L from 'leaflet';
 
-import 'leaflet/dist/leaflet.css';
+import '../../styles/leaflet.css';
 
 import type { ComplaintLocation } from '../../types/complaint';
 

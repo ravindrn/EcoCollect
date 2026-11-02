@@ -1,5 +1,5 @@
 import { Text, View, Pressable } from 'react-native';
-import { Bell } from 'lucide-react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 type AppHeaderProps = {
   showNotifications?: boolean;
@@ -40,7 +40,7 @@ export function AppHeader({
           accessibilityRole="button"
           accessibilityLabel="Notifications"
         >
-          <Bell size={21} color="#0F172A" />
+          <Ionicons name="notifications-outline" size={21} color="#0F172A" />
 
           <View className="absolute right-2.5 top-2.5 h-[10px] w-[10px] rounded-full border-2 border-white bg-red-500" />
         </Pressable>

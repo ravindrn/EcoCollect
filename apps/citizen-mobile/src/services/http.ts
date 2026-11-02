@@ -1,5 +1,6 @@
 import { env } from "../config/env";
 import { getToken, clearToken } from "./tokenStorage";
+import { fetch as expoFetch } from "expo/fetch";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -49,7 +50,7 @@ export async function request<T>(
     if (token) headers.Authorization = `Bearer ${token}`;
   }
 
-  const res = await fetch(url, {
+  const res = await expoFetch(url, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,

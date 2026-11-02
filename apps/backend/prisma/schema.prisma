@@ -7,9 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------------------------------------
 // Enums
-// ---------------------------------------------------------------------------
 
 enum Role {
   CITIZEN
@@ -44,6 +42,7 @@ model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
   passwordHash String   @map("password_hash")
+  expoPushToken String? @map("expo_push_token")
   role         Role     @default(CITIZEN)
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
@@ -68,6 +67,7 @@ model CitizenProfile {
   phone        String?
   address      String?
   wardDivision String?  @map("ward_division")
+  profileImageUrl String? @map("profile_image_url")
   areaId       String?  @map("area_id") @db.Uuid
   area         Area?    @relation(fields: [areaId], references: [id], onDelete: Restrict)
   placeId      String?  @map("place_id") @db.Uuid

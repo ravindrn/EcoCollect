@@ -220,6 +220,7 @@ complaintsRouter.post(
         message: "Complaint submitted successfully",
         data: {
           id: complaint.id,
+          userId: complaint.userId,
           category: complaint.category,
           title: complaint.title,
           description: complaint.description,

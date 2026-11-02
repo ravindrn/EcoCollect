@@ -2,7 +2,7 @@ import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { HomeScreen } from '../screens/HomeScreen';
-import { ProfileScreen } from '../screens/ProfileScreen';
+import { ProfileStack } from "./ProfileStack";
 import { ComplaintsScreen } from '../screens/ComplaintsScreen';
 import { colors } from '../theme/colors';
 import { LiveMapScreen } from '../screens/LiveMapScreen';
@@ -60,7 +60,7 @@ export function AppTabs() {
       <Tabs.Screen name="Home" component={HomeScreen} />
       <Tabs.Screen name="LiveMap" component={LiveMapScreen} />
       <Tabs.Screen name="Complaints" component={ComplaintsScreen} />
-      <Tabs.Screen name="Profile" component={ProfileScreen} />
+      <Tabs.Screen name="Profile" component={ProfileStack} />
     </Tabs.Navigator>
   );
 }

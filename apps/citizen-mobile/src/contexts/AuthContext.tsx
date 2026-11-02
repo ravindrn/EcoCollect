@@ -17,6 +17,7 @@ import {
 } from "../services/auth";
 import { clearToken, getToken, saveToken } from "../services/tokenStorage";
 import { setUnauthorizedHandler } from "../services/http";
+import { registerForPushNotifications } from "../services/pushNotifications";
 
 type AuthState = {
   user: AuthUser | null;
@@ -39,17 +40,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  // Register push notifications after a citizen is authenticated.
+  useEffect(() => {
+    if (initializing || !user || user.role !== "CITIZEN") {
+      return;
+    }
+
+    void registerForPushNotifications();
+  }, [user, initializing]);
+
   // Called once on mount: if a token exists, validate it by fetching /me.
   useEffect(() => {
     let cancelled = false;
+
     (async () => {
+      console.log("[Auth] App initialization started");
+
       try {
+        console.log("[Auth] Checking stored token...");
         const token = await getToken();
+
+        console.log("[Auth] Token check completed:", !!token);
+
         if (!token) {
-          if (!cancelled) setInitializing(false);
+          console.log("[Auth] No saved token. Showing login screen.");
+
+          if (!cancelled) {
+            setInitializing(false);
+          }
           return;
         }
+
+        console.log("[Auth] Fetching current user...");
         const me = await getMe();
+
+        console.log("[Auth] User fetched:", me.email);
+
         if (!cancelled) {
           setUser({
             id: me.id,
@@ -59,12 +85,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             areaName: me.profile?.area?.name ?? null,
           });
         }
-      } catch {
+      } catch (error) {
+        console.error("[Auth] Initialization failed:", error);
+
         await clearToken();
       } finally {
-        if (!cancelled) setInitializing(false);
+        console.log("[Auth] Initialization finished");
+
+        if (!cancelled) {
+          setInitializing(false);
+        }
       }
     })();
+
     return () => {
       cancelled = true;
     };
@@ -106,14 +139,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signUp = useCallback(async (input: RegisterInput) => {
-  setLoading(true);
-  try {
-    // Do NOT save token — user must sign in after registration.
-    await apiRegister(input);
-  } finally {
-    setLoading(false);
-  }
-}, []);
+    setLoading(true);
+    try {
+      // Do NOT save token — user must sign in after registration.
+      await apiRegister(input);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const value = useMemo<AuthState>(
     () => ({
