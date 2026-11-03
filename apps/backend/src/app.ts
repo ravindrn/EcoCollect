@@ -21,6 +21,7 @@ import { announcementsAdminRouter } from './routes/announcementsAdmin.js';
 import { areasAdminRouter } from './routes/areasAdmin.js';
 import { placesRouter } from './routes/places.js';
 import { schedulesRouter } from './routes/schedules.js';
+import { adminRoutesRouter } from './routes/adminRoutes.js';
 
 export function createApp() {
   const app = express();
@@ -57,6 +58,7 @@ export function createApp() {
 app.use('/api/v1/admin/areas', areasAdminRouter);
 app.use('/api/v1/places', placesRouter);
 app.use('/api/v1/schedules', schedulesRouter);
+app.use('/api/v1/admin', adminRoutesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

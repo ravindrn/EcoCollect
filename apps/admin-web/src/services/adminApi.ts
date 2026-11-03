@@ -20,11 +20,37 @@ export type StatsResult = {
     citizens: number;
     drivers: number;
     admins: number;
+    active: number;
   };
   complaints: {
     total: number;
+    pending: number;
     open: number;
+    inProgress: number;
+    resolved: number;
+    rejected: number;
   };
+  announcements: {
+    total: number;
+    published: number;
+  };
+  vehicles: {
+    active: number;
+  };
+  complaintsByStatus: { status: string; count: number }[];
+  complaintsByCategory: { category: string; count: number }[];
+  complaintsPerDay: { date: string; count: number }[];
+  recentComplaints: {
+    id: string;
+    title: string;
+    status: string;
+    category: string;
+    createdAt: string;
+    isAnonymous: boolean;
+    reporterName: string | null;
+    reporterEmail: string | null;
+  }[];
+  generatedAt: string;
 };
 
 export type AdminUserListItem = {
@@ -378,4 +404,143 @@ export async function updateArea(
 
 export async function deleteArea(id: string): Promise<{ id: string }> {
   return api.delete(`/admin/areas/${id}`, { auth: true });
+}
+
+// ---------------------------------------------------------------------------
+// Route Management (per-day operational)
+// ---------------------------------------------------------------------------
+
+export type RouteStopItem = {
+  id: string;
+  order: number;
+  place: { id: string; name: string };
+};
+
+export type RouteScheduleItem = {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  stops: RouteStopItem[];
+};
+
+export type AdminRoute = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  vehicle: string | null;
+  driver: string | null;
+  workers: string | null;
+  color: string | null;
+  citizenCount: number;
+  placeCount: number;
+  schedules: RouteScheduleItem[];
+};
+
+export type PlaceLite = {
+  id: string;
+  name: string;
+  area: { id: string; name: string };
+};
+
+export async function getRoutes(): Promise<AdminRoute[]> {
+  return api.get<AdminRoute[]>('/admin/routes', { auth: true });
+}
+
+export async function createRoute(input: {
+  name: string;
+  vehicle?: string;
+  driver?: string;
+  workers?: string;
+  color?: string;
+}): Promise<AdminRoute> {
+  return api.post('/admin/routes', input, { auth: true });
+}
+
+export async function updateRoute(
+  id: string,
+  input: {
+    name?: string;
+    vehicle?: string;
+    driver?: string;
+    workers?: string;
+    color?: string;
+    isActive?: boolean;
+  },
+): Promise<AdminRoute> {
+  return api.patch(`/admin/routes/${id}`, input, { auth: true });
+}
+
+export async function deleteRoute(id: string): Promise<{ id: string }> {
+  return api.delete(`/admin/routes/${id}`, { auth: true });
+}
+
+export async function addScheduleDay(
+  routeId: string,
+  input: { dayOfWeek: number; startTime: string },
+): Promise<RouteScheduleItem> {
+  return api.post(`/admin/routes/${routeId}/schedules`, input, { auth: true });
+}
+
+export async function updateScheduleDay(
+  routeId: string,
+  scheduleId: string,
+  input: { startTime?: string },
+): Promise<RouteScheduleItem> {
+  return api.patch(
+    `/admin/routes/${routeId}/schedules/${scheduleId}`,
+    input,
+    { auth: true },
+  );
+}
+
+export async function deleteScheduleDay(
+  routeId: string,
+  scheduleId: string,
+): Promise<{ id: string }> {
+  return api.delete(`/admin/routes/${routeId}/schedules/${scheduleId}`, {
+    auth: true,
+  });
+}
+
+export async function addStop(
+  routeId: string,
+  scheduleId: string,
+  placeId: string,
+): Promise<RouteStopItem> {
+  return api.post(
+    `/admin/routes/${routeId}/schedules/${scheduleId}/stops`,
+    { placeId },
+    { auth: true },
+  );
+}
+
+export async function deleteStop(
+  routeId: string,
+  scheduleId: string,
+  stopId: string,
+): Promise<{ id: string }> {
+  return api.delete(
+    `/admin/routes/${routeId}/schedules/${scheduleId}/stops/${stopId}`,
+    { auth: true },
+  );
+}
+
+export async function reorderStops(
+  routeId: string,
+  scheduleId: string,
+  stopIds: string[],
+): Promise<{ reordered: boolean }> {
+  return api.patch(
+    `/admin/routes/${routeId}/schedules/${scheduleId}/stops/reorder`,
+    { stopIds },
+    { auth: true },
+  );
+}
+
+// Public place search (already exists elsewhere but re-export for route page)
+export async function searchPlaces(q?: string): Promise<PlaceLite[]> {
+  const search = new URLSearchParams();
+  if (q) search.set('q', q);
+  search.set('limit', '200');
+  return api.get<PlaceLite[]>(`/places?${search.toString()}`);
 }
