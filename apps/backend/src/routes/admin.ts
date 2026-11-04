@@ -15,21 +15,136 @@ adminRouter.get(
   requireRole('ADMIN'),
   async (_req, res, next) => {
     try {
-      const [totalUsers, citizens, drivers, admins, openComplaints, totalComplaints] =
-        await Promise.all([
-          prisma.user.count(),
-          prisma.user.count({ where: { role: 'CITIZEN' } }),
-          prisma.user.count({ where: { role: 'DRIVER' } }),
-          prisma.user.count({ where: { role: 'ADMIN' } }),
-          prisma.complaint.count({ where: { status: 'OPEN' } }),
-          prisma.complaint.count(),
-        ]);
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+      thirtyDaysAgo.setHours(0, 0, 0, 0);
+
+      const [
+        totalUsers,
+        citizens,
+        drivers,
+        admins,
+        activeUsers,
+        totalComplaints,
+        complaintsByStatus,
+        complaintsByCategory,
+        totalAnnouncements,
+        publishedAnnouncements,
+        totalVehicles,
+        recentComplaints,
+        last30Days,
+      ] = await Promise.all([
+        prisma.user.count(),
+        prisma.user.count({ where: { role: 'CITIZEN' } }),
+        prisma.user.count({ where: { role: 'DRIVER' } }),
+        prisma.user.count({ where: { role: 'ADMIN' } }),
+        prisma.user.count({ where: { isActive: true } }),
+        prisma.complaint.count(),
+        prisma.complaint.groupBy({
+          by: ['status'],
+          _count: { _all: true },
+        }),
+        prisma.complaint.groupBy({
+          by: ['category'],
+          _count: { _all: true },
+        }),
+        prisma.announcement.count(),
+        prisma.announcement.count({ where: { status: 'PUBLISHED' } }),
+        prisma.vehicle.count({ where: { isActive: true } }),
+        prisma.complaint.findMany({
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                citizenProfile: { select: { fullName: true } },
+              },
+            },
+          },
+        }),
+        prisma.complaint.findMany({
+          where: { createdAt: { gte: thirtyDaysAgo } },
+          select: { createdAt: true },
+        }),
+      ]);
+
+      // Build status counts map
+      const statusMap: Record<string, number> = {};
+      for (const row of complaintsByStatus) {
+        statusMap[row.status] = row._count._all;
+      }
+
+      // Build category counts map
+      const categoryMap: Record<string, number> = {};
+      for (const row of complaintsByCategory) {
+        categoryMap[row.category] = row._count._all;
+      }
+
+      // Aggregate complaints per day for last 30 days
+      const perDayBuckets: Record<string, number> = {};
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(thirtyDaysAgo);
+        d.setDate(thirtyDaysAgo.getDate() + i);
+        const key = d.toISOString().slice(0, 10);
+        perDayBuckets[key] = 0;
+      }
+      for (const c of last30Days) {
+        const key = c.createdAt.toISOString().slice(0, 10);
+        if (key in perDayBuckets) perDayBuckets[key]! += 1;
+      }
+
+      const complaintsPerDay = Object.entries(perDayBuckets).map(
+        ([date, count]) => ({ date, count }),
+      );
 
       res.json({
         success: true,
         data: {
-          users: { total: totalUsers, citizens, drivers, admins },
-          complaints: { total: totalComplaints, open: openComplaints },
+          users: {
+            total: totalUsers,
+            citizens,
+            drivers,
+            admins,
+            active: activeUsers,
+          },
+          complaints: {
+            total: totalComplaints,
+            pending: statusMap.PENDING ?? 0,
+            open: statusMap.OPEN ?? 0,
+            inProgress: statusMap.IN_PROGRESS ?? 0,
+            resolved: statusMap.RESOLVED ?? 0,
+            rejected: statusMap.REJECTED ?? 0,
+          },
+          announcements: {
+            total: totalAnnouncements,
+            published: publishedAnnouncements,
+          },
+          vehicles: {
+            active: totalVehicles,
+          },
+          complaintsByStatus: Object.entries(statusMap).map(([status, count]) => ({
+            status,
+            count,
+          })),
+          complaintsByCategory: Object.entries(categoryMap).map(
+            ([category, count]) => ({ category, count }),
+          ),
+          complaintsPerDay,
+          recentComplaints: recentComplaints.map((c) => ({
+            id: c.id,
+            title: c.title,
+            status: c.status,
+            category: c.category,
+            createdAt: c.createdAt,
+            isAnonymous: c.isAnonymous,
+            reporterName: c.user?.citizenProfile?.fullName ?? null,
+            reporterEmail: c.user?.email ?? null,
+          })),
+          generatedAt: now.toISOString(),
         },
       });
     } catch (err) {
@@ -37,7 +152,6 @@ adminRouter.get(
     }
   },
 );
-
 // ---------------------------------------------------------------------------
 // Users management
 // ---------------------------------------------------------------------------

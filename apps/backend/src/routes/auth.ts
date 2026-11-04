@@ -9,10 +9,12 @@ const registerSchema = z.object({
   email: z.string().email().max(255),
   password: z.string().min(8).max(100),
   fullName: z.string().min(1).max(120),
-  phone: z.string().min(7).max(20),
+  phone: z
+    .string()
+    .regex(/^(\+94|0)[0-9]{9}$/, 'Enter a valid Sri Lankan phone number'),
+  placeId: z.string().uuid('Please select your area or road'),
   address: z.string().max(255).optional(),
   wardDivision: z.string().max(120).optional(),
-  areaId: z.string().uuid(),
 });
 
 const loginSchema = z.object({

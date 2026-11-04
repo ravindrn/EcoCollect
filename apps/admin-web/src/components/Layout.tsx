@@ -7,17 +7,23 @@ const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
   '/complaints': 'Complaints',
   '/users': 'Users',
+  '/routes': 'Routes',
   '/announcements': 'Announcements',
-  '/areas': 'Areas',
   '/live-map': 'Live Map',
-  '/route-alerts': 'Route alerts',
 };
 
 export function Layout() {
   const { user, signOut } = useAuth();
   const { pathname } = useLocation();
 
-  const title = pageTitles[pathname] ?? 'Admin';
+  const title =
+    pageTitles[pathname] ??
+    (pathname.startsWith('/complaints/')
+      ? 'Complaint Detail'
+      : pathname.startsWith('/routes/')
+        ? 'Route Detail'
+        : 'Admin');
+
   const initial = (user?.email ?? '?').trim().charAt(0).toUpperCase();
   const isMapRoute = pathname === '/live-map';
 

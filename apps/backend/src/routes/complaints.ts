@@ -34,7 +34,6 @@ const photoUpload = multer({
     },
     filename: (_req, file, callback) => {
       const extension = allowedImageTypes[file.mimetype];
-
       callback(null, `${randomUUID()}${extension}`);
     },
   }),
@@ -53,7 +52,6 @@ const photoUpload = multer({
       );
       return;
     }
-
     callback(null, true);
   },
 });
@@ -111,7 +109,7 @@ complaintsRouter.post(
       const body = req.body ?? {};
 
       const category = body.category;
-      const title = body.title;
+      const rawTitle = body.title;
       const description = body.description;
 
       const isAnonymous =
@@ -148,26 +146,42 @@ complaintsRouter.post(
         );
       }
 
-      if (
-        typeof title !== "string" ||
-        !title.trim() ||
-        title.trim().length > 100
-      ) {
+      // Auto-derive title from category if missing
+      const resolvedTitle =
+        typeof rawTitle === "string" && rawTitle.trim()
+          ? rawTitle.trim()
+          : category !== "Other"
+            ? category
+            : "";
+
+      if (!resolvedTitle) {
         throw new HttpError(
           400,
-          "Title is required and must be at most 100 characters",
+          "Please enter a complaint title",
           "INVALID_TITLE",
         );
       }
 
-      if (
-        typeof description !== "string" ||
-        !description.trim() ||
-        description.trim().length > 1000
-      ) {
+      if (resolvedTitle.length > 100) {
         throw new HttpError(
           400,
-          "Description is required and must be at most 1000 characters",
+          "Title must be at most 100 characters",
+          "INVALID_TITLE",
+        );
+      }
+
+      if (typeof description !== "string" || !description.trim()) {
+        throw new HttpError(
+          400,
+          "Please describe the problem",
+          "INVALID_DESCRIPTION",
+        );
+      }
+
+      if (description.trim().length > 1000) {
+        throw new HttpError(
+          400,
+          "Description must be at most 1000 characters",
           "INVALID_DESCRIPTION",
         );
       }
@@ -191,7 +205,7 @@ complaintsRouter.post(
       const complaint = await prisma.complaint.create({
         data: {
           category,
-          title: title.trim(),
+          title: resolvedTitle,
           description: description.trim(),
           isAnonymous,
           userId: isAnonymous ? null : req.user!.id,
@@ -252,7 +266,6 @@ complaintsRouter.get(
 
 // GET /api/v1/complaints/:id
 // Get a registered complaint owned by the authenticated citizen.
-
 complaintsRouter.get(
   "/:id",
   requireAuth,

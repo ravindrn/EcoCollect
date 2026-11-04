@@ -20,11 +20,37 @@ export type StatsResult = {
     citizens: number;
     drivers: number;
     admins: number;
+    active: number;
   };
   complaints: {
     total: number;
+    pending: number;
     open: number;
+    inProgress: number;
+    resolved: number;
+    rejected: number;
   };
+  announcements: {
+    total: number;
+    published: number;
+  };
+  vehicles: {
+    active: number;
+  };
+  complaintsByStatus: { status: string; count: number }[];
+  complaintsByCategory: { category: string; count: number }[];
+  complaintsPerDay: { date: string; count: number }[];
+  recentComplaints: {
+    id: string;
+    title: string;
+    status: string;
+    category: string;
+    createdAt: string;
+    isAnonymous: boolean;
+    reporterName: string | null;
+    reporterEmail: string | null;
+  }[];
+  generatedAt: string;
 };
 
 export type AdminUserListItem = {
@@ -153,30 +179,6 @@ export type VehicleHistory = {
   points: VehicleHistoryPoint[];
 };
 
-export type RouteAlertKind = 'OUTSIDE' | 'INSIDE';
-
-export type RouteAlert = {
-  id: string;
-  kind: RouteAlertKind;
-  routeName: string | null;
-  latitude: number;
-  longitude: number;
-  recordedAt: string;
-  vehicle: {
-    id: string;
-    plateNumber: string;
-    name: string | null;
-  };
-  driver: {
-    id: string;
-    email: string;
-  };
-};
-
-export async function getRouteAlerts(): Promise<RouteAlert[]> {
-  return api.get<RouteAlert[]>('/admin/route-alerts', { auth: true });
-}
-
 export async function getLiveVehicles(): Promise<LiveVehicle[]> {
   return api.get<LiveVehicle[]>('/admin/vehicles/live', { auth: true });
 }
@@ -194,4 +196,351 @@ export async function getVehicleHistory(
     `/admin/vehicles/${vehicleId}/history${qs ? `?${qs}` : ''}`,
     { auth: true },
   );
+}
+
+// ---------------------------------------------------------------------------
+// Complaints
+// ---------------------------------------------------------------------------
+
+export type ComplaintCategory =
+  | 'OVERFLOW'
+  | 'MISSED_PICKUP'
+  | 'ILLEGAL_DUMPING'
+  | 'BURNING'
+  | 'DAMAGED_BIN'
+  | 'OTHER';
+
+// ---------------------------------------------------------------------------
+// Complaints (aligned with merged schema)
+// ---------------------------------------------------------------------------
+
+export type ComplaintStatus = 'PENDING' | 'IN_PROGRESS' | 'RESOLVED' | 'REJECTED';
+
+export type AdminComplaintItem = {
+  id: string;
+  title: string;
+  category: string;
+  status: ComplaintStatus;
+  description: string;
+  photoUrl: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  isAnonymous: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    email: string;
+    fullName: string | null;
+    phone: string | null;
+    wardDivision: string | null;
+  } | null;
+};
+
+export type ComplaintsListResult = {
+  items: AdminComplaintItem[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+  statusCounts: Record<string, number>;
+};
+
+export type ComplaintsQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: ComplaintStatus;
+  category?: string;
+  anonymous?: 'true' | 'false';
+  q?: string;
+};
+
+export async function getComplaints(
+  params: ComplaintsQuery = {},
+): Promise<ComplaintsListResult> {
+  const search = new URLSearchParams();
+  if (params.page) search.set('page', String(params.page));
+  if (params.pageSize) search.set('pageSize', String(params.pageSize));
+  if (params.status) search.set('status', params.status);
+  if (params.category) search.set('category', params.category);
+  if (params.anonymous) search.set('anonymous', params.anonymous);
+  if (params.q) search.set('q', params.q);
+  const qs = search.toString();
+  return api.get<ComplaintsListResult>(
+    `/admin/complaints${qs ? `?${qs}` : ''}`,
+    { auth: true },
+  );
+}
+
+export async function getComplaint(id: string): Promise<AdminComplaintItem> {
+  return api.get<AdminComplaintItem>(`/admin/complaints/${id}`, { auth: true });
+}
+
+export async function updateComplaintStatus(
+  id: string,
+  status: ComplaintStatus,
+): Promise<{ id: string; status: ComplaintStatus; updatedAt: string }> {
+  return api.patch(
+    `/admin/complaints/${id}/status`,
+    { status },
+    { auth: true },
+  );
+}
+
+export function resolvePhotoUrl(photoUrl: string | null): string | null {
+  if (!photoUrl) return null;
+  const base = import.meta.env.VITE_API_BASE_URL ?? '';
+  const origin = base.replace(/\/api\/v1\/?$/, '');
+  return `${origin}${photoUrl}`;
+}
+
+// ---------------------------------------------------------------------------
+// Announcements (admin)
+// ---------------------------------------------------------------------------
+
+export type AnnouncementPriority = 'NORMAL' | 'IMPORTANT' | 'URGENT';
+export type AnnouncementStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export type Announcement = {
+  id: string;
+  title: string;
+  description: string;
+  priority: AnnouncementPriority;
+  status: AnnouncementStatus;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AnnouncementListResult = {
+  items: Announcement[];
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type CreateAnnouncementInput = {
+  title: string;
+  description: string;
+  priority?: AnnouncementPriority;
+};
+
+export type UpdateAnnouncementInput = {
+  title?: string;
+  description?: string;
+  priority?: AnnouncementPriority;
+  status?: AnnouncementStatus;
+};
+
+export async function getAnnouncementsAdmin(params: {
+  page?: number;
+  pageSize?: number;
+  status?: AnnouncementStatus;
+  priority?: AnnouncementPriority;
+  q?: string;
+} = {}): Promise<AnnouncementListResult> {
+  const search = new URLSearchParams();
+  if (params.page) search.set('page', String(params.page));
+  if (params.pageSize) search.set('pageSize', String(params.pageSize));
+  if (params.status) search.set('status', params.status);
+  if (params.priority) search.set('priority', params.priority);
+  if (params.q) search.set('q', params.q);
+  const qs = search.toString();
+  return api.get(`/admin/announcements${qs ? `?${qs}` : ''}`, { auth: true });
+}
+
+export async function createAnnouncement(
+  input: CreateAnnouncementInput,
+): Promise<Announcement> {
+  return api.post('/announcements', input, { auth: true });
+}
+
+export async function updateAnnouncement(
+  id: string,
+  input: UpdateAnnouncementInput,
+): Promise<Announcement> {
+  return api.patch(`/announcements/${id}`, input, { auth: true });
+}
+
+export async function deleteAnnouncement(id: string): Promise<{ id: string }> {
+  return api.delete(`/admin/announcements/${id}`, { auth: true });
+}
+
+// ---------------------------------------------------------------------------
+// Areas (admin)
+// ---------------------------------------------------------------------------
+
+export type AdminArea = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  createdAt: string;
+  citizenCount: number;
+  updateCount: number;
+};
+
+export async function getAreasAdmin(): Promise<AdminArea[]> {
+  return api.get('/admin/areas', { auth: true });
+}
+
+export async function createArea(input: {
+  name: string;
+  isActive?: boolean;
+}): Promise<AdminArea> {
+  return api.post('/admin/areas', input, { auth: true });
+}
+
+export async function updateArea(
+  id: string,
+  input: { name?: string; isActive?: boolean },
+): Promise<AdminArea> {
+  return api.patch(`/admin/areas/${id}`, input, { auth: true });
+}
+
+export async function deleteArea(id: string): Promise<{ id: string }> {
+  return api.delete(`/admin/areas/${id}`, { auth: true });
+}
+
+// ---------------------------------------------------------------------------
+// Route Management (per-day operational)
+// ---------------------------------------------------------------------------
+
+export type RouteStopItem = {
+  id: string;
+  order: number;
+  place: { id: string; name: string };
+};
+
+export type RouteScheduleItem = {
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  stops: RouteStopItem[];
+};
+
+export type AdminRoute = {
+  id: string;
+  name: string;
+  isActive: boolean;
+  vehicle: string | null;
+  driver: string | null;
+  workers: string | null;
+  color: string | null;
+  citizenCount: number;
+  placeCount: number;
+  schedules: RouteScheduleItem[];
+};
+
+export type PlaceLite = {
+  id: string;
+  name: string;
+  area: { id: string; name: string };
+};
+
+export async function getRoutes(): Promise<AdminRoute[]> {
+  return api.get<AdminRoute[]>('/admin/routes', { auth: true });
+}
+
+export async function createRoute(input: {
+  name: string;
+  vehicle?: string;
+  driver?: string;
+  workers?: string;
+  color?: string;
+}): Promise<AdminRoute> {
+  return api.post('/admin/routes', input, { auth: true });
+}
+
+export async function updateRoute(
+  id: string,
+  input: {
+    name?: string;
+    vehicle?: string;
+    driver?: string;
+    workers?: string;
+    color?: string;
+    isActive?: boolean;
+  },
+): Promise<AdminRoute> {
+  return api.patch(`/admin/routes/${id}`, input, { auth: true });
+}
+
+export async function deleteRoute(id: string): Promise<{ id: string }> {
+  return api.delete(`/admin/routes/${id}`, { auth: true });
+}
+
+export async function addScheduleDay(
+  routeId: string,
+  input: { dayOfWeek: number; startTime: string },
+): Promise<RouteScheduleItem> {
+  return api.post(`/admin/routes/${routeId}/schedules`, input, { auth: true });
+}
+
+export async function updateScheduleDay(
+  routeId: string,
+  scheduleId: string,
+  input: { startTime?: string },
+): Promise<RouteScheduleItem> {
+  return api.patch(
+    `/admin/routes/${routeId}/schedules/${scheduleId}`,
+    input,
+    { auth: true },
+  );
+}
+
+export async function deleteScheduleDay(
+  routeId: string,
+  scheduleId: string,
+): Promise<{ id: string }> {
+  return api.delete(`/admin/routes/${routeId}/schedules/${scheduleId}`, {
+    auth: true,
+  });
+}
+
+export async function addStop(
+  routeId: string,
+  scheduleId: string,
+  placeId: string,
+): Promise<RouteStopItem> {
+  return api.post(
+    `/admin/routes/${routeId}/schedules/${scheduleId}/stops`,
+    { placeId },
+    { auth: true },
+  );
+}
+
+export async function deleteStop(
+  routeId: string,
+  scheduleId: string,
+  stopId: string,
+): Promise<{ id: string }> {
+  return api.delete(
+    `/admin/routes/${routeId}/schedules/${scheduleId}/stops/${stopId}`,
+    { auth: true },
+  );
+}
+
+export async function reorderStops(
+  routeId: string,
+  scheduleId: string,
+  stopIds: string[],
+): Promise<{ reordered: boolean }> {
+  return api.patch(
+    `/admin/routes/${routeId}/schedules/${scheduleId}/stops/reorder`,
+    { stopIds },
+    { auth: true },
+  );
+}
+
+// Public place search (already exists elsewhere but re-export for route page)
+export async function searchPlaces(q?: string): Promise<PlaceLite[]> {
+  const search = new URLSearchParams();
+  if (q) search.set('q', q);
+  search.set('limit', '200');
+  return api.get<PlaceLite[]>(`/places?${search.toString()}`);
 }

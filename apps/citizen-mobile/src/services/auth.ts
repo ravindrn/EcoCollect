@@ -42,8 +42,9 @@ export type RegisterInput = {
   password: string;
   fullName: string;
   phone: string;
+  placeId: string;
   address?: string;
-  areaId: string;
+  wardDivision?: string;
 };
 
 export type Area = {
@@ -68,4 +69,59 @@ export async function login(
 
 export async function getMe(): Promise<MeResponse> {
   return api.get<MeResponse>("/users/me", { auth: true });
+}
+
+export type Place = {
+  id: string;
+  name: string;
+  area: { id: string; name: string };
+};
+
+export async function getPlaces(
+  params: { q?: string; areaId?: string; limit?: number } = {},
+): Promise<Place[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set('q', params.q);
+  if (params.areaId) search.set('areaId', params.areaId);
+  if (params.limit) search.set('limit', String(params.limit));
+  const qs = search.toString();
+  return api.get<Place[]>(`/places${qs ? `?${qs}` : ''}`);
+}
+
+export type ScheduleDay = {
+  dayOfWeek: number;
+  dayName: string;
+};
+
+export type NextCollection = {
+  dayOfWeek: number;
+  dayName: string;
+  date: string;
+  startTime: string;
+  isToday: boolean;
+  daysUntil: number;
+};
+
+export type TodaysCollection = {
+  active: boolean;
+  startTime: string;
+  dayName: string;
+};
+
+export type MySchedule = {
+  placeName: string | null;
+  areaName: string;
+  available: boolean;
+  message?: string;
+  vehicle?: string | null;
+  driver?: string | null;
+  workers?: string | null;
+  startTime?: string;
+  weeklyDays?: ScheduleDay[];
+  todaysCollection?: TodaysCollection | null;
+  nextCollection?: NextCollection | null;
+};
+
+export async function getMySchedule(): Promise<MySchedule> {
+  return api.get<MySchedule>('/schedules/me', { auth: true });
 }

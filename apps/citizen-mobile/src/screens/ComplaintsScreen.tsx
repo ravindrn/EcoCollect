@@ -55,7 +55,6 @@ export function ComplaintsScreen() {
 
   const [gettingLocation, setGettingLocation] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   const titleError =
@@ -63,14 +62,14 @@ export function ComplaintsScreen() {
       ? !title.trim()
         ? "Please enter a complaint title."
         : title.trim().length > 100
-          ? "Title must be 100 characters or less."
+          ? "Title must be at most 100 characters."
           : ""
       : "";
 
   const descriptionError = !description.trim()
     ? "Please describe the problem."
     : description.trim().length > 1000
-      ? "Description must be 1000 characters or less."
+      ? "Description must be at most 1000 characters."
       : "";
 
   const categoryError = !category ? "Please select a complaint category." : "";
@@ -126,7 +125,6 @@ export function ComplaintsScreen() {
       );
       return;
     }
-
     setMapVisible(false);
   };
 
@@ -173,18 +171,9 @@ export function ComplaintsScreen() {
     }
 
     Alert.alert("Attach a photo", "Choose how to add your photo.", [
-      {
-        text: "Take a photo",
-        onPress: () => void pickPhoto(true),
-      },
-      {
-        text: "Choose from gallery",
-        onPress: () => void pickPhoto(false),
-      },
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Take a photo", onPress: () => void pickPhoto(true) },
+      { text: "Choose from gallery", onPress: () => void pickPhoto(false) },
+      { text: "Cancel", style: "cancel" },
     ]);
   };
 
@@ -198,9 +187,14 @@ export function ComplaintsScreen() {
     try {
       setSubmitting(true);
 
+      const finalTitle =
+        category === "Other" ? title.trim() : (category ?? "").trim();
+
+      console.log("[submit] category =", category, "| finalTitle =", finalTitle);
+
       const payload = {
         category: category!,
-        title: title.trim(),
+        title: finalTitle,
         description: description.trim(),
         isAnonymous,
         location: location
@@ -231,7 +225,6 @@ export function ComplaintsScreen() {
 
         if (Platform.OS === "web") {
           const photoResponse = await fetch(photoUri);
-
           if (!photoResponse.ok) {
             throw new Error("Could not read the selected photo.");
           }
@@ -249,7 +242,6 @@ export function ComplaintsScreen() {
           formData.append("photo", photoBlob, filename);
         } else {
           const extension = filename.split(".").pop()?.toLowerCase();
-
           const mimeType =
             extension === "png"
               ? "image/png"
@@ -281,12 +273,7 @@ export function ComplaintsScreen() {
         window.alert(message);
         resetForm();
       } else {
-        Alert.alert("Success!", message, [
-          {
-            text: "OK",
-            onPress: resetForm,
-          },
-        ]);
+        Alert.alert("Success!", message, [{ text: "OK", onPress: resetForm }]);
       }
     } catch (error) {
       const message =
@@ -313,7 +300,6 @@ export function ComplaintsScreen() {
     setLocation(null);
     setPhotoUri(null);
     setSubmitted(false);
-    setSuccessMessage("");
   };
 
   const sectionTitle = (number: string, titleText: string) => (
@@ -335,7 +321,7 @@ export function ComplaintsScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         <AppHeader onNotificationPress={() => {}} />
-        {/* ───────────── Page header ───────────── */}
+
         <View className="mb-6 mt-4 overflow-hidden rounded-3xl bg-emerald-600 p-5 shadow-md">
           <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
           <View className="absolute -bottom-12 right-10 h-32 w-32 rounded-full bg-white/10" />
@@ -352,7 +338,7 @@ export function ComplaintsScreen() {
           </Text>
         </View>
 
-        {/* ───────────── 1. Complaint Type ───────────── */}
+        {/* 1. Complaint Type */}
         <View className="mb-5 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
           {sectionTitle("1", "Complaint Type")}
 
@@ -422,7 +408,7 @@ export function ComplaintsScreen() {
           </Pressable>
         </View>
 
-        {/* ───────────── 2. Complaint Details ───────────── */}
+        {/* 2. Complaint Details */}
         <View className="mb-5 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
           {sectionTitle("2", "Complaint Details")}
 
@@ -437,7 +423,6 @@ export function ComplaintsScreen() {
           >
             {CATEGORIES.map((item) => {
               const selected = category === item;
-
               return (
                 <Pressable
                   key={item}
@@ -479,30 +464,30 @@ export function ComplaintsScreen() {
 
           {category === "Other" && (
             <View>
-              <Text className="mb-2 text-sm font-medium text-gray-700">
-                Complaint Title
+              <Text className="mb-2 text-sm font-bold text-slate-900">
+                Complaint Title *
               </Text>
-
               <TextInput
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Enter complaint title"
+                maxLength={100}
                 className={`rounded-xl border px-4 py-3 ${
-                  titleError ? "border-red-500" : "border-gray-300"
+                  submitted && titleError
+                    ? "border-red-500"
+                    : "border-gray-300"
                 }`}
               />
+              {submitted && titleError ? (
+                <Text className="mt-1.5 text-[13px] font-medium text-red-600">
+                  {titleError}
+                </Text>
+              ) : null}
+              <Text className="mb-4 mt-1.5 text-right text-xs font-medium text-slate-400">
+                {title.length}/100
+              </Text>
             </View>
           )}
-          {submitted && titleError ? (
-            <Text className="mb-2 mt-1.5 text-[13px] font-medium text-red-600">
-              {titleError}
-            </Text>
-          ) : (
-            <View className="mb-4" />
-          )}
-          <Text className="mb-2 text-right text-xs font-medium text-slate-400">
-            {title.length}/100
-          </Text>
 
           <Text className="mb-2 text-sm font-bold text-slate-900">
             Description *
@@ -532,7 +517,7 @@ export function ComplaintsScreen() {
           </Text>
         </View>
 
-        {/* ───────────── 3. Complaint Location ───────────── */}
+        {/* 3. Complaint Location */}
         <View className="mb-5 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
           {sectionTitle("3", "Complaint Location")}
 
@@ -571,7 +556,7 @@ export function ComplaintsScreen() {
 
           {submitted && locationError !== "" ? (
             <Text className="mt-2 text-[13px] font-medium text-red-600">
-              {String(locationError)}
+              {locationError}
             </Text>
           ) : null}
 
@@ -605,7 +590,7 @@ export function ComplaintsScreen() {
           )}
         </View>
 
-        {/* ───────────── 4. Attach Photo ───────────── */}
+        {/* 4. Attach Photo */}
         <View className="mb-5 rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
           {sectionTitle("4", "Attach Photo (Optional)")}
 
@@ -672,7 +657,6 @@ export function ComplaintsScreen() {
         </Pressable>
       </ScrollView>
 
-      {/* ───────────── Map location picker ───────────── */}
       <Modal
         visible={mapVisible}
         animationType="slide"
