@@ -7,9 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------------------------------------
 // Enums
-// ---------------------------------------------------------------------------
 
 enum Role {
   CITIZEN
@@ -44,12 +42,14 @@ model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
   passwordHash String   @map("password_hash")
+  expoPushToken String? @map("expo_push_token")
   role         Role     @default(CITIZEN)
   isActive     Boolean  @default(true) @map("is_active")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   citizenProfile     CitizenProfile?
+  notificationPreference NotificationPreference?
   vehicles           Vehicle[]
   complaints         Complaint[]
   communityUpdates   CommunityUpdate[]
@@ -61,6 +61,24 @@ model User {
   @@map("users")
 }
 
+model NotificationPreference {
+  id                     String   @id @default(uuid()) @db.Uuid
+  userId                 String   @unique @map("user_id") @db.Uuid
+
+  pushEnabled            Boolean  @default(true) @map("push_enabled")
+  importantAnnouncements Boolean @default(true) @map("important_announcements")
+  urgentAnnouncements    Boolean  @default(true) @map("urgent_announcements")
+  collectionReminders    Boolean  @default(true) @map("collection_reminders")
+  complaintUpdates       Boolean  @default(true) @map("complaint_updates")
+
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
 model CitizenProfile {
   id           String   @id @default(uuid()) @db.Uuid
   userId       String   @unique @map("user_id") @db.Uuid
@@ -68,6 +86,7 @@ model CitizenProfile {
   phone        String?
   address      String?
   wardDivision String?  @map("ward_division")
+  profileImageUrl String? @map("profile_image_url")
   areaId       String?  @map("area_id") @db.Uuid
   area         Area?    @relation(fields: [areaId], references: [id], onDelete: Restrict)
   placeId      String?  @map("place_id") @db.Uuid

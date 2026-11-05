@@ -116,3 +116,52 @@ export async function login(input: LoginInput): Promise<AuthResult> {
     },
   };
 }
+
+export async function changePassword(
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      passwordHash: true,
+      isActive: true,
+    },
+  });
+
+  if (!user || !user.isActive) {
+    throw new HttpError(401, "User not found or inactive", "UNAUTHORIZED");
+  }
+
+  const isCurrentPasswordValid = await verifyPassword(
+    user.passwordHash,
+    currentPassword,
+  );
+
+  if (!isCurrentPasswordValid) {
+    throw new HttpError(
+      400,
+      "Current password is incorrect",
+      "INVALID_CURRENT_PASSWORD",
+    );
+  }
+
+  if (currentPassword === newPassword) {
+    throw new HttpError(
+      400,
+      "New password must be different from current password",
+      "SAME_PASSWORD",
+    );
+  }
+
+  const newPasswordHash = await hashPassword(newPassword);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      passwordHash: newPasswordHash,
+    },
+  });
+}

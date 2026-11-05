@@ -1,0 +1,10 @@
+/* Leaflet layer-control images are omitted because Metro
+   does not support these relative CSS asset URLs. */
+.leaflet-control-layers-toggle {
+  background-image: none !important;
+}
+
+/* Custom marker is created using L.divIcon. */
+.leaflet-default-icon-path {
+  background-image: none !important;
+}

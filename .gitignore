@@ -51,3 +51,5 @@ apps/backend/.agents/
 apps/backend/.claude/
 apps/backend/.windsurf/
 apps/backend/skills-lock.json
+
+apps/citizen-mobile/google-services.json

@@ -418,11 +418,15 @@ export function HomeScreen() {
   };
 
   return (
-    <ScreenContainer scroll={true}>
-      <View className="flex-1 px-5 pb-10">
+    <ScreenContainer>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
         <AppHeader onNotificationPress={() => {}} />
 
-        {/* Welcome */}
+        {/* ───────────── Welcome ───────────── */}
         <View className="mb-5 mt-4 rounded-3xl border border-emerald-100 bg-emerald-50/60 p-4 shadow-sm">
           <View className="flex-row items-center gap-4">
             <View className="h-[72px] w-[72px] items-center justify-center rounded-full bg-emerald-100 p-1">
@@ -459,7 +463,7 @@ export function HomeScreen() {
           </View>
         </View>
 
-        {/* Next Collection Hero Card */}
+        {/* ───────────── Next Collection (hero card) ───────────── */}
         <View className="overflow-hidden rounded-3xl bg-emerald-600 p-5 shadow-md">
           <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
           <View className="absolute -bottom-12 right-10 h-32 w-32 rounded-full bg-white/10" />
@@ -575,7 +579,7 @@ export function HomeScreen() {
           )}
         </View>
 
-        {/* Council Updates — unchanged */}
+        {/* ───────────── Council Updates ───────────── */}
         <View className="mt-8">
           <View className="mb-4 flex-row items-center justify-between">
             <View className="flex-row items-center gap-2.5">
@@ -683,7 +687,7 @@ export function HomeScreen() {
           )}
         </View>
 
-        {/* Community Updates — unchanged */}
+        {/* ───────────── Community Updates ───────────── */}
         <View className="mt-8">
           <View className="flex-row items-center gap-2.5">
             <View className="h-5 w-1.5 rounded-full bg-emerald-600" />
@@ -860,9 +864,9 @@ export function HomeScreen() {
             )
           )}
         </View>
-      </View>
+      </ScrollView>
 
-      {/* Comments Modal */}
+      {/* ───────────── Comments Modal ───────────── */}
       <Modal
         visible={selectedUpdate !== null}
         animationType="slide"
@@ -1011,7 +1015,7 @@ export function HomeScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Edit Update Modal */}
+      {/* ───────────── Edit Update Modal ───────────── */}
       <Modal
         visible={editingUpdate !== null}
         transparent
