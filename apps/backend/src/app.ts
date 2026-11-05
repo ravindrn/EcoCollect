@@ -22,6 +22,7 @@ import { areasAdminRouter } from './routes/areasAdmin.js';
 import { placesRouter } from './routes/places.js';
 import { schedulesRouter } from './routes/schedules.js';
 import { adminRoutesRouter } from './routes/adminRoutes.js';
+import { driverRoutesRouter } from "./routes/driverRoutes.js";
 
 export function createApp() {
   const app = express();
@@ -50,6 +51,7 @@ export function createApp() {
       index: false,
     }),
   );
+  app.use('/api/v1/routes', driverRoutesRouter)
   app.use('/api/v1/admin', adminRouter);
   app.use('/api/v1/vehicles', vehiclesRouter);
   app.use('/api/v1/admin', adminVehiclesRouter);

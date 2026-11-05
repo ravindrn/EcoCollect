@@ -1,37 +1,72 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { latestQueuedPoint } from '@/services/gpsQueue'
+import type { DriverStop } from '@/services/myRoute'
 import { roadGeometry } from '@/services/roadRoute'
-import { pickupsAlongPath, todayMapForEmail } from '@/services/todayRoute'
+import type { PickupStop } from '@/services/todayRoute'
 import { useTrip } from '@/stores/trip'
 
-export function useDriverMap(email: string | undefined, vehiclePoint?: { latitude: number; longitude: number } | null) {
+export function useDriverMap(
+  stops: DriverStop[],
+  vehiclePoint?: { latitude: number; longitude: number } | null,
+) {
   const liveFix = useTrip((state) => state.liveFix)
   const trail = useTrip((state) => state.trail)
   const active = useTrip((state) => state.active)
-  const fixture = useMemo(() => (email ? todayMapForEmail(email) : null), [email])
-  const anchorKey = fixture?.path.map((point) => `${point.longitude},${point.latitude}`).join(';') ?? ''
+  const points = useMemo(
+    () =>
+      stops
+        .filter((stop) => stop.latitude != null && stop.longitude != null)
+        .sort((left, right) => left.order - right.order)
+        .map((stop) => ({
+          latitude: stop.latitude as number,
+          longitude: stop.longitude as number,
+        })),
+    [stops],
+  )
+  const anchorKey = points.map((point) => `${point.longitude},${point.latitude}`).join(';')
   const roadQuery = useQuery({
     queryKey: ['road-route', anchorKey],
-    enabled: anchorKey.length > 0,
+    enabled: points.length > 1,
     staleTime: 60 * 60 * 1000,
-    queryFn: () => roadGeometry(fixture?.path ?? []),
+    queryFn: () => roadGeometry(points),
   })
   const roadPath = roadQuery.data
 
   return useMemo(() => {
-    if (!fixture && !vehiclePoint) return null
+    if (stops.length === 0 && !vehiclePoint) return null
     const queued = latestQueuedPoint()
-    const path = roadPath ?? fixture?.path ?? (vehiclePoint ? [vehiclePoint] : [])
+    const path = points.length > 1 ? (roadPath ?? points) : []
+    const pickups: PickupStop[] = stops
+      .filter((stop) => stop.latitude != null && stop.longitude != null)
+      .sort((left, right) => left.order - right.order)
+      .map((stop) => ({
+        id: stop.id,
+        index: stop.order,
+        latitude: stop.latitude as number,
+        longitude: stop.longitude as number,
+      }))
+    const driver = liveFix ?? queued ?? vehiclePoint ?? path[0] ?? pickups[0]
+    if (!driver) return null
     return {
       path,
-      pickups: path.length > 1 ? pickupsAlongPath(path, fixture?.stopCount ?? 1) : [],
-      driver: liveFix ?? queued ?? vehiclePoint ?? fixture?.latest ?? path[0],
+      pickups,
+      driver,
       trail,
       live: Boolean(active && liveFix),
-      routePending: roadQuery.isPending && anchorKey.length > 0,
+      routePending: roadQuery.isPending && points.length > 1,
       routeError: roadQuery.isError,
       retryRoute: () => void roadQuery.refetch(),
     }
-  }, [active, anchorKey.length, fixture, liveFix, roadPath, roadQuery.isError, roadQuery.isPending, trail, vehiclePoint])
+  }, [
+    active,
+    liveFix,
+    points.length,
+    roadPath,
+    roadQuery.isError,
+    roadQuery.isPending,
+    stops,
+    trail,
+    vehiclePoint,
+  ])
 }

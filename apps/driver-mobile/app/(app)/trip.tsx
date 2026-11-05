@@ -17,11 +17,12 @@ import { fixtureActivityLog, saveActivityLog, segmentMinutes } from '@/services/
 import { leavesCorridor, noteDeviation, type CorridorPoint, type DeviationAlert } from '@/services/corridor'
 import { engineOnMs, intervalsFromTrackerPower } from '@/services/engineLog'
 import { useDriverMap } from '@/hooks/useDriverMap'
+import { getMyRoute } from '@/services/myRoute'
 import { getMyProfile } from '@/services/profile'
 import { sendRouteAlert } from '@/services/routeAlert'
 import { getMyVehicle } from '@/services/vehicle'
 import { fixtureShift } from '@/services/shiftStats'
-import { todayRouteForEmail, trackerPowerForEmail } from '@/services/todayRoute'
+import { trackerPowerForEmail } from '@/services/todayRoute'
 import { useTrip } from '@/stores/trip'
 
 export default function TripScreen() {
@@ -43,7 +44,8 @@ export default function TripScreen() {
     queryKey: ['vehicles', 'me'],
     queryFn: getMyVehicle,
   })
-  const tripMap = useDriverMap(profile?.email, vehicleQuery.data?.lastLocation ?? null)
+  const routeQuery = useQuery({ queryKey: ['routes', 'me'], queryFn: getMyRoute })
+  const tripMap = useDriverMap(routeQuery.data?.stops ?? [], vehicleQuery.data?.lastLocation ?? null)
   const trackerIntervals = intervalsFromTrackerPower(profile ? trackerPowerForEmail(profile.email) : [])
   const activity = fixtureActivityLog()
   const shift = fixtureShift()
@@ -57,7 +59,7 @@ export default function TripScreen() {
     alertsRef.current = next.alerts
     if (!next.status) return
     const base = next.status === 'OUTSIDE' ? t('deviationAlert') : t('deviationBack')
-    const routeName = profile ? todayRouteForEmail(profile.email)?.routeName ?? null : null
+    const routeName = routeQuery.data?.routeName ?? null
     void sendRouteAlert({
       kind: next.status,
       latitude: point.latitude,
@@ -70,7 +72,7 @@ export default function TripScreen() {
         message: delivery === 'queued' ? `${base}. ${t('deviationQueued')}` : base,
       })
     })
-  }, [profile, t])
+  }, [routeQuery.data?.routeName, t])
 
   useEffect(() => {
     if (!active || !liveFix || !tripMap || tripMap.path.length < 2) return

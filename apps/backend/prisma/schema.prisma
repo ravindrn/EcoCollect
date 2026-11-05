@@ -106,6 +106,7 @@ model Area {
   places              Place[]
   collectionSchedules CollectionSchedule[]
   routeSchedules      RouteSchedule[]
+  vehicles            Vehicle[]
 
   @@map("areas")
 }
@@ -224,7 +225,10 @@ model Vehicle {
   driver      User?             @relation(fields: [driverId], references: [id], onDelete: SetNull)
   locations   VehicleLocation[]
   routeAlerts RouteAlert[]
+  areaId String? @map("area_id") @db.Uuid
+  area Area? @relation(fields: [areaId], references: [id], onDelete: SetNull)
 
+  @@index([areaId])
   @@index([isActive])
   @@map("vehicles")
 }
@@ -336,6 +340,8 @@ model Place {
   area      Area     @relation(fields: [areaId], references: [id], onDelete: Restrict)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+  latitude Float?
+  longitude Float?
 
   citizenProfiles CitizenProfile[]
   routeStops      RouteStop[]      // ← must be present

@@ -10,10 +10,8 @@ import { Screen } from '@/components/ui/Screen'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { PressableScale } from '@/components/ui/PressableScale'
 import { useAppTheme } from '@/hooks/useAppTheme'
-import { useDriverMap } from '@/hooks/useDriverMap'
+import { getMyRoute } from '@/services/myRoute'
 import { pickupReasons, readPickupLog, savePickup, type PickupReason, type PickupRecord } from '@/services/pickupLog'
-import { getMyProfile } from '@/services/profile'
-import { getMyVehicle } from '@/services/vehicle'
 
 export default function PickupsScreen() {
   const { t } = useTranslation()
@@ -28,17 +26,9 @@ export default function PickupsScreen() {
     ALREADY_EMPTY: t('pickupReasonEmpty'),
     OTHER: t('pickupReasonOther'),
   }
-  const profileQuery = useQuery({
-    queryKey: ['users', 'me'],
-    queryFn: getMyProfile,
-  })
-  const vehicleQuery = useQuery({
-    queryKey: ['vehicles', 'me'],
-    queryFn: getMyVehicle,
-  })
-  const tripMap = useDriverMap(profileQuery.data?.email, vehicleQuery.data?.lastLocation ?? null)
-  const ready = profileQuery.isSuccess && !tripMap?.routePending
-  const pickups = ready ? tripMap?.pickups ?? [] : []
+  const routeQuery = useQuery({ queryKey: ['routes', 'me'], queryFn: getMyRoute })
+  const ready = routeQuery.isSuccess
+  const pickups = routeQuery.data?.stops ?? []
   const byId = new Map(records.map((record) => [record.stopId, record]))
   const collected = pickups.filter((stop) => byId.get(stop.id)?.status === 'collected').length
   const missed = pickups.filter((stop) => byId.get(stop.id)?.status === 'missed').length
@@ -68,8 +58,8 @@ export default function PickupsScreen() {
     <Screen>
       <GradientHeader title={t('pickupsTitle')} back />
       <Card>
-        {profileQuery.isPending || tripMap?.routePending ? <Skeleton label={t('routeLoading')} lines={3} /> : null}
-        {profileQuery.isError ? <ErrorState error={profileQuery.error} onRetry={() => void profileQuery.refetch()} /> : null}
+        {routeQuery.isPending ? <Skeleton label={t('routeLoading')} lines={3} /> : null}
+        {routeQuery.isError ? <ErrorState error={routeQuery.error} onRetry={() => void routeQuery.refetch()} /> : null}
         {ready && pickups.length === 0 ? <EmptyState title={t('pickupEmpty')} /> : null}
         {pickups.length > 0 ? (
           <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong }}>
@@ -92,7 +82,7 @@ export default function PickupsScreen() {
               }}
             >
               <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>
-                {t('pickupLocation', { n: stop.index })}
+                {stop.name}
               </Text>
               <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
                 <Choice

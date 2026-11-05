@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { useDriverMap } from '@/hooks/useDriverMap'
 import { getMyProfile } from '@/services/profile'
-import { todayRouteForEmail } from '@/services/todayRoute'
+import { getMyRoute } from '@/services/myRoute'
 import { getMyVehicle } from '@/services/vehicle'
 import { useTrip } from '@/stores/trip'
 
@@ -33,8 +33,9 @@ export default function HomeScreen() {
     queryFn: getMyVehicle,
   })
   const vehicle = vehicleQuery.data
-  const route = profile ? todayRouteForEmail(profile.email) : null
-  const tripMap = useDriverMap(profile?.email, vehicle?.lastLocation ?? null)
+  const routeQuery = useQuery({ queryKey: ['routes', 'me'], queryFn: getMyRoute })
+  const route = routeQuery.data
+  const tripMap = useDriverMap(route?.stops ?? [], vehicle?.lastLocation ?? null)
   const subtitle = profile?.profile?.fullName || profile?.email || t('shellTitle')
 
   function openTrip() {
@@ -47,9 +48,10 @@ export default function HomeScreen() {
       <GradientHeader title={t('homeGreeting')} subtitle={subtitle} />
       <Card>
         <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption }}>{t('routeTitle')}</Text>
-        {profileQuery.isPending ? <Skeleton label={t('routeLoading')} /> : null}
+        {profileQuery.isPending || routeQuery.isPending ? <Skeleton label={t('routeLoading')} /> : null}
         {profileQuery.isError ? <ErrorState error={profileQuery.error} onRetry={() => void profileQuery.refetch()} /> : null}
-        {profileQuery.isSuccess && !route && !vehicle ? <EmptyState title={t('routeEmpty')} body={t('emptyRouteBody')} /> : null}
+        {routeQuery.isError ? <ErrorState error={routeQuery.error} onRetry={() => void routeQuery.refetch()} /> : null}
+        {routeQuery.isSuccess && !route && !vehicle ? <EmptyState title={t('routeEmpty')} body={t('emptyRouteBody')} /> : null}
         {vehicle ? (
           <View style={{ marginTop: theme.spacing.md }}>
             <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>
@@ -61,9 +63,9 @@ export default function HomeScreen() {
         {route ? (
           <View style={{ marginTop: theme.spacing.md }}>
             <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{route.routeName}</Text>
-            <RouteFact label={t('routeTractor')} value={route.tractorName} />
-            <RouteFact label={t('plannedWindow')} value={`${route.plannedStart}–${route.plannedEnd}`} />
-            <RouteFact label={t('routeStops')} value={String(route.stopCount)} />
+            <RouteFact label={t('routeTractor')} value={route.vehicle.plateNumber} />
+            <RouteFact label={t('plannedWindow')} value={route.startTime} />
+            <RouteFact label={t('routeStops')} value={String(route.stops.length)} />
             {tripMap?.routePending ? <Skeleton label={t('mapLoading')} lines={2} /> : null}
             {tripMap?.routeError ? (
               <View style={{ marginTop: theme.spacing.md }}>
@@ -71,7 +73,7 @@ export default function HomeScreen() {
                 <PrimaryButton label={t('queueRetry')} onPress={tripMap.retryRoute} style={{ marginTop: theme.spacing.md }} />
               </View>
             ) : null}
-            {tripMap && !tripMap.routePending && !tripMap.routeError ? (
+            {tripMap && tripMap.path.length > 1 && !tripMap.routePending && !tripMap.routeError ? (
               <TripMap
                 path={tripMap.path}
                 driver={tripMap.driver}
