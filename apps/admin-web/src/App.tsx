@@ -6,11 +6,11 @@ import { DashboardPage } from './pages/DashboardPage';
 import { UsersPage } from './pages/UsersPage';
 import { colors } from './theme/colors';
 import { LiveMapPage } from './pages/LiveMapPage';
-import { TestMapPage } from './pages/TestMapPage';
 import { ComplaintsPage } from './pages/ComplaintsPage';
 import { ComplaintDetailPage } from './pages/ComplaintDetailPage';
 import { AnnouncementsPage } from './pages/AnnouncementsPage';
-import { AreasPage } from './pages/AreasPage';
+import { RoutesPage } from './pages/RoutesPage';
+import { RouteDetailPage } from './pages/RouteDetailPage';
 
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -61,13 +61,13 @@ export default function App() {
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="complaints" element={<ComplaintsPage />} />
-            <Route path="users" element={<UsersPage />} />
-            <Route path="announcements" element={<AnnouncementsPage />} />
-            <Route path="areas" element={<AreasPage />} />
-            <Route path="live-map" element={<LiveMapPage />} />
-            <Route path="test-map" element={<TestMapPage />} />
-            <Route path="complaints" element={<ComplaintsPage />} />
+<Route path="complaints" element={<ComplaintsPage />} />
+<Route path="complaints/:id" element={<ComplaintDetailPage />} />
+<Route path="users" element={<UsersPage />} />
+<Route path="routes" element={<RoutesPage />} />
+<Route path="routes/:id" element={<RouteDetailPage />} />
+<Route path="announcements" element={<AnnouncementsPage />} />
+<Route path="live-map" element={<LiveMapPage />} />
             
 <Route path="complaints/:id" element={<ComplaintDetailPage />} />
           </Route>

@@ -13,6 +13,15 @@ import { announcementsRouter } from "./routes/announcements.js";
 import { communityUpdatesRouter } from "./routes/communityUpdates.js";
 import { complaintsRouter } from "./routes/complaints.js";
 import { uploadsDir } from "./lib/uploads.js";
+import { adminRouter } from './routes/admin.js';
+import { vehiclesRouter } from './routes/vehicles.js';
+import { adminVehiclesRouter } from './routes/adminVehicles.js';
+import { adminComplaintsRouter } from './routes/adminComplaints.js';
+import { announcementsAdminRouter } from './routes/announcementsAdmin.js';
+import { areasAdminRouter } from './routes/areasAdmin.js';
+import { placesRouter } from './routes/places.js';
+import { schedulesRouter } from './routes/schedules.js';
+import { adminRoutesRouter } from './routes/adminRoutes.js';
 import { adminRouter } from "./routes/admin.js";
 import { vehiclesRouter } from "./routes/vehicles.js";
 import { adminVehiclesRouter } from "./routes/adminVehicles.js";
@@ -55,6 +64,15 @@ export function createApp() {
       index: false,
     }),
   );
+  app.use('/api/v1/admin', adminRouter);
+  app.use('/api/v1/vehicles', vehiclesRouter);
+  app.use('/api/v1/admin', adminVehiclesRouter);
+  app.use('/api/v1/admin', adminComplaintsRouter);
+  app.use('/api/v1/admin/announcements', announcementsAdminRouter);
+app.use('/api/v1/admin/areas', areasAdminRouter);
+app.use('/api/v1/places', placesRouter);
+app.use('/api/v1/schedules', schedulesRouter);
+app.use('/api/v1/admin', adminRoutesRouter);
   app.use("/api/v1/admin", adminRouter);
   app.use("/api/v1/vehicles", vehiclesRouter);
   app.use("/api/v1/admin", adminVehiclesRouter);

@@ -7,8 +7,8 @@ const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
   '/complaints': 'Complaints',
   '/users': 'Users',
+  '/routes': 'Routes',
   '/announcements': 'Announcements',
-  '/areas': 'Areas',
   '/live-map': 'Live Map',
 };
 
@@ -17,8 +17,13 @@ export function Layout() {
   const { pathname } = useLocation();
 
   const title =
-  pageTitles[pathname] ??
-  (pathname.startsWith('/complaints/') ? 'Complaint Detail' : 'Admin');
+    pageTitles[pathname] ??
+    (pathname.startsWith('/complaints/')
+      ? 'Complaint Detail'
+      : pathname.startsWith('/routes/')
+        ? 'Route Detail'
+        : 'Admin');
+
   const initial = (user?.email ?? '?').trim().charAt(0).toUpperCase();
   const isMapRoute = pathname === '/live-map';
 
