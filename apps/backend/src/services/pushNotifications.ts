@@ -1,4 +1,3 @@
-
 import { prisma } from "../lib/prisma.js";
 
 type PushMessage = {
@@ -15,14 +14,12 @@ type PushMessage = {
   };
 };
 
-export async function sendAnnouncementPush(
-  announcement: {
-    id: string;
-    title: string;
-    description: string;
-    priority: "NORMAL" | "IMPORTANT" | "URGENT";
-  },
-): Promise<void> {
+export async function sendAnnouncementPush(announcement: {
+  id: string;
+  title: string;
+  description: string;
+  priority: "NORMAL" | "IMPORTANT" | "URGENT";
+}): Promise<void> {
   // NORMAL announcements never send push notifications.
   if (
     announcement.priority !== "IMPORTANT" &&
@@ -30,6 +27,11 @@ export async function sendAnnouncementPush(
   ) {
     return;
   }
+
+  const preferenceField =
+    announcement.priority === "URGENT"
+      ? "urgentAnnouncements"
+      : "importantAnnouncements";
 
   const citizens = await prisma.user.findMany({
     where: {
@@ -39,12 +41,29 @@ export async function sendAnnouncementPush(
     },
     select: {
       expoPushToken: true,
+      notificationPreference: {
+        select: {
+          pushEnabled: true,
+          importantAnnouncements: true,
+          urgentAnnouncements: true,
+        },
+      },
     },
   });
 
   const tokens = [
     ...new Set(
       citizens
+        .filter((citizen) => {
+          const preferences = citizen.notificationPreference;
+
+          // Users without a preference record retain the default ON behavior.
+          if (!preferences) return true;
+
+          if (!preferences.pushEnabled) return false;
+
+          return preferences[preferenceField];
+        })
         .map((citizen) => citizen.expoPushToken)
         .filter((token): token is string => Boolean(token)),
     ),
@@ -79,19 +98,16 @@ export async function sendAnnouncementPush(
     }));
 
     try {
-      const response = await fetch(
-        "https://exp.host/--/api/v2/push/send",
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Accept-encoding": "gzip, deflate",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(messages),
-          signal: AbortSignal.timeout(10_000),
+      const response = await fetch("https://exp.host/--/api/v2/push/send", {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Accept-encoding": "gzip, deflate",
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify(messages),
+        signal: AbortSignal.timeout(10_000),
+      });
 
       if (!response.ok) {
         console.error(

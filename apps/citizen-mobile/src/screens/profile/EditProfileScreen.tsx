@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -23,6 +24,7 @@ import {
   getProfileImageUri,
 } from "../../services/profileService";
 import * as ImagePicker from "expo-image-picker";
+import { AppHeader } from "../../components/AppHeader";
 
 type EditProfileNavigationProp = NativeStackNavigationProp<
   ProfileStackParamList,
@@ -238,12 +240,21 @@ export function EditProfileScreen() {
   if (loading) {
     return (
       <ScreenContainer>
-        <View className="flex-1 items-center justify-center">
-          <View className="items-center rounded-3xl border border-gray-100 bg-white px-8 py-8 shadow-sm">
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text className="mt-3 text-sm font-medium text-slate-500">
-              Loading your information...
-            </Text>
+        <View className="flex-1">
+          <Pressable
+            onPress={() => navigation.goBack()}
+            className="mt-4 mb-5 h-11 w-11 items-center justify-center rounded-xl border border-gray-100 bg-white"
+          >
+            <Text className="text-2xl text-slate-700">‹</Text>
+          </Pressable>
+
+          <View className="flex-1 items-center justify-center">
+            <View className="items-center rounded-3xl border border-gray-100 bg-white px-8 py-8 shadow-sm">
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text className="mt-3 text-sm font-medium text-slate-500">
+                Loading your information...
+              </Text>
+            </View>
           </View>
         </View>
       </ScreenContainer>
@@ -257,8 +268,20 @@ export function EditProfileScreen() {
         contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* ───────────── Page header ───────────── */}
-        <View className="mb-5 mt-4 overflow-hidden rounded-3xl bg-emerald-600 p-5 shadow-md">
+
+        <AppHeader onNotificationPress={() => {}} />
+        {/* Back button */}
+        <Pressable
+          onPress={() => navigation.goBack()}
+          className="mb-6 self-start rounded-full bg-white px-4 py-2"
+        >
+          <Text className="text-base font-semibold text-gray-700">
+            ← Back
+          </Text>
+        </Pressable>
+
+        {/* Page header */}
+        <View className="mb-5 overflow-hidden rounded-3xl bg-emerald-600 p-5 shadow-md">
           <View className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
           <View className="absolute -bottom-12 right-10 h-32 w-32 rounded-full bg-white/10" />
 
@@ -269,13 +292,21 @@ export function EditProfileScreen() {
           <Text className="mt-4 text-[26px] font-extrabold tracking-tight text-white">
             Edit Profile
           </Text>
+
           <Text className="mt-1 text-sm font-medium text-emerald-50">
             Update your personal information
           </Text>
         </View>
 
-        {/* ───────────── Profile photo ───────────── */}
+        {/* Profile photo */}
         <View className="mb-5 items-center rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+          <View className="mb-3 flex-row items-center self-start">
+            <View className="mr-2 h-5 w-1.5 rounded-full bg-emerald-600" />
+            <Text className="text-[17px] font-extrabold text-slate-900">
+              Profile Picture
+            </Text>
+          </View>
+
           <View className="h-[124px] w-[124px] items-center justify-center rounded-full bg-emerald-100 p-1.5">
             <Image
               source={{
@@ -301,9 +332,7 @@ export function EditProfileScreen() {
             >
               <Text className="text-base">🖼️</Text>
               <Text className="text-sm font-bold text-emerald-700">
-                {selectedPhoto
-                  ? "Change Selected Photo"
-                  : "Choose Profile Photo"}
+                {selectedPhoto ? "Change Selected Photo" : "Choose Profile Photo"}
               </Text>
             </Pressable>
 
@@ -324,7 +353,7 @@ export function EditProfileScreen() {
           </View>
         </View>
 
-        {/* ───────────── Form ───────────── */}
+        {/* Personal details form */}
         <View className="rounded-3xl border border-gray-100 bg-white p-4 shadow-sm">
           {sectionTitle("Personal Details")}
 
@@ -365,6 +394,7 @@ export function EditProfileScreen() {
             maxLength={100}
           />
 
+          {/* Information note */}
           <View className="mb-5 flex-row overflow-hidden rounded-2xl bg-emerald-50">
             <View className="w-1.5 bg-emerald-500" />
             <View className="flex-1 flex-row items-start gap-2.5 p-3.5">
@@ -376,6 +406,7 @@ export function EditProfileScreen() {
             </View>
           </View>
 
+          {/* Save button */}
           <PrimaryButton
             title="Save Changes"
             loading={saving}
@@ -385,6 +416,7 @@ export function EditProfileScreen() {
             }}
           />
 
+          {/* Cancel button */}
           <View className="mt-3">
             <PrimaryButton
               title="Cancel"
@@ -393,6 +425,14 @@ export function EditProfileScreen() {
               onPress={() => navigation.goBack()}
             />
           </View>
+        </View>
+
+        {/* Footer */}
+        <View className="mt-5 items-center px-4">
+          <Text className="text-center text-xs leading-5 text-slate-400">
+            Keep your profile information up to date to receive accurate
+            collection updates from EcoCollect.
+          </Text>
         </View>
       </ScrollView>
     </ScreenContainer>

@@ -111,8 +111,7 @@ export function ProfileScreen() {
     setRefreshing(false);
   };
 
-  const fullName =
-    profile?.fullName || user?.fullName || "EcoCollect Citizen";
+  const fullName = profile?.fullName || user?.fullName || "EcoCollect Citizen";
 
   const email = user?.email || "";
 
@@ -127,10 +126,7 @@ export function ProfileScreen() {
   const initial = fullName.trim().charAt(0).toUpperCase();
 
   const showComingSoon = (feature: string) => {
-    Alert.alert(
-      feature,
-      `${feature} feature will be available soon.`,
-    );
+    Alert.alert(feature, `${feature} feature will be available soon.`);
   };
 
   const sectionTitle = (titleText: string) => (
@@ -332,12 +328,7 @@ export function ProfileScreen() {
 
           <InfoRow icon="📞" label="Phone Number" value={profile?.phone} />
 
-          <InfoRow
-            icon="🏠"
-            label="Address"
-            value={profile?.address}
-            last
-          />
+          <InfoRow icon="🏠" label="Address" value={profile?.address} last />
         </View>
 
         {/* ───────────── Collection Information ───────────── */}
@@ -387,31 +378,31 @@ export function ProfileScreen() {
           <SettingsItem
             icon="🔔"
             title="Notification Settings"
-            onPress={() => showComingSoon("Notification Settings")}
+            onPress={() => navigation.navigate("NotificationSettings")}
           />
 
           <SettingsItem
             icon="🔑"
             title="Change Password"
-            onPress={() => showComingSoon("Change Password")}
+            onPress={() => navigation.navigate("ChangePassword")}
           />
 
           <SettingsItem
             icon="🛡️"
             title="Privacy & Security"
-            onPress={() => showComingSoon("Privacy & Security")}
+            onPress={() => navigation.navigate("PrivacySecurity")}
           />
-
+          
           <SettingsItem
             icon="💬"
             title="Help & Support"
-            onPress={() => showComingSoon("Help & Support")}
+            onPress={() => navigation.navigate("HelpSupport")}
           />
 
           <SettingsItem
             icon="ℹ️"
             title="About EcoCollect"
-            onPress={() => showComingSoon("About EcoCollect")}
+            onPress={() => navigation.navigate("AboutEcoCollect")}
             last
           />
         </View>

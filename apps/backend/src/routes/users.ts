@@ -283,3 +283,106 @@ usersRouter.post(
     }
   },
 );
+
+// GET /api/v1/users/me/notification-settings
+// Get the authenticated citizen's notification preferences.
+usersRouter.get(
+  "/me/notification-settings",
+  requireAuth,
+  requireRole("CITIZEN"),
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new HttpError(401, "Not authenticated", "UNAUTHORIZED");
+      }
+
+      const settings = await prisma.notificationPreference.upsert({
+        where: { userId },
+        create: { userId },
+        update: {},
+        select: {
+          pushEnabled: true,
+          importantAnnouncements: true,
+          urgentAnnouncements: true,
+          collectionReminders: true,
+          complaintUpdates: true,
+        },
+      });
+
+      res.json({
+        success: true,
+        data: settings,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// PATCH /api/v1/users/me/notification-settings
+// Update one or more notification preferences.
+usersRouter.patch(
+  "/me/notification-settings",
+  requireAuth,
+  requireRole("CITIZEN"),
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+
+      if (!userId) {
+        throw new HttpError(401, "Not authenticated", "UNAUTHORIZED");
+      }
+
+      const settingsSchema = z
+        .object({
+          pushEnabled: z.boolean().optional(),
+          importantAnnouncements: z.boolean().optional(),
+          urgentAnnouncements: z.boolean().optional(),
+          collectionReminders: z.boolean().optional(),
+          complaintUpdates: z.boolean().optional(),
+        })
+        .refine(
+          (data) => Object.values(data).some((value) => value !== undefined),
+          {
+            message: "At least one notification setting is required",
+          },
+        );
+
+      const parsed = settingsSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        throw new HttpError(
+          400,
+          "Invalid notification settings",
+          "VALIDATION_ERROR",
+        );
+      }
+
+      const settings = await prisma.notificationPreference.upsert({
+        where: { userId },
+        create: {
+          userId,
+          ...parsed.data,
+        },
+        update: parsed.data,
+        select: {
+          pushEnabled: true,
+          importantAnnouncements: true,
+          urgentAnnouncements: true,
+          collectionReminders: true,
+          complaintUpdates: true,
+        },
+      });
+
+      res.json({
+        success: true,
+        message: "Notification settings updated successfully",
+        data: settings,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);

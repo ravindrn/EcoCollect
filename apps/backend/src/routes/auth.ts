@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { validateBody } from '../middleware/validate.js';
-import { register, login } from '../services/authService.js';
+import { requireAuth } from "../middleware/auth.js";
+import { register, login, changePassword } from '../services/authService.js';
+import { HttpError } from "../middleware/error.js";
 
 export const authRouter = Router();
 
@@ -22,6 +24,11 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(100),
+});
+
 authRouter.post('/register', validateBody(registerSchema), async (req, res, next) => {
   try {
     const result = await register(req.body);
@@ -39,3 +46,29 @@ authRouter.post('/login', validateBody(loginSchema), async (req, res, next) => {
     next(err);
   }
 });
+
+authRouter.post(
+  "/change-password",
+  requireAuth,
+  validateBody(changePasswordSchema),
+  async (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new HttpError(401, "Not authenticated", "UNAUTHORIZED");
+      }
+
+      await changePassword(
+        req.user.id,
+        req.body.currentPassword,
+        req.body.newPassword,
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Password changed successfully",
+      });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
