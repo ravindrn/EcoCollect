@@ -7,12 +7,11 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { GradientHeader } from '@/components/ui/GradientHeader'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { Screen } from '@/components/ui/Screen'
-import { useAppTheme } from '@/hooks/useAppTheme'
 import { offlineQueue, retryOfflineQueue } from '@/services/offlineQueue'
+import { colors } from '@/theme/colors'
 
 export default function QueueScreen() {
   const { t } = useTranslation()
-  const theme = useAppTheme()
   const [waiting, setWaiting] = useState(offlineQueue())
 
   useFocusEffect(
@@ -25,27 +24,27 @@ export default function QueueScreen() {
     <Screen>
       <GradientHeader title={t('queueTitle')} back />
       <Card>
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>
+        <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
           {t('queueCount')}: {waiting.count}
         </Text>
         {waiting.count === 0 ? <EmptyState title={t('queueEmpty')} /> : null}
         {waiting.gps.map((point) => (
-          <Text key={point.id} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+          <Text key={point.id} className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
             {t('queueGps')} {point.recordedAt}
           </Text>
         ))}
         {waiting.weightKg !== null ? (
-          <Text style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+          <Text className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
             {t('queueWeight')}: {waiting.weightKg} {t('unitKg')}
           </Text>
         ) : null}
         {waiting.routeAlerts.map((alert) => (
-          <Text key={alert.id} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+          <Text key={alert.id} className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
             {t('queueRouteAlert')} {alert.kind === 'OUTSIDE' ? t('deviationOutside') : t('deviationInside')}
           </Text>
         ))}
         {waiting.activity.map((segment) => (
-          <Text key={segment.id} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+          <Text key={segment.id} className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
             {t('queueActivity')}{' '}
             {segment.kind === 'MOVING' ? t('activityMoving') : segment.kind === 'IDLE' ? t('activityIdle') : t('activityStop')}
           </Text>
@@ -55,7 +54,7 @@ export default function QueueScreen() {
           onPress={() => {
             void retryOfflineQueue().then(() => setWaiting(offlineQueue()))
           }}
-          style={{ marginTop: theme.spacing.xl }}
+          style={{ marginTop: 24 }}
         />
       </Card>
     </Screen>

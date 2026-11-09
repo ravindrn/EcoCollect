@@ -9,13 +9,12 @@ import { GradientHeader } from '@/components/ui/GradientHeader'
 import { Screen } from '@/components/ui/Screen'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { PressableScale } from '@/components/ui/PressableScale'
-import { useAppTheme } from '@/hooks/useAppTheme'
 import { getMyRoute } from '@/services/myRoute'
 import { pickupReasons, readPickupLog, savePickup, type PickupReason, type PickupRecord } from '@/services/pickupLog'
+import { colors } from '@/theme/colors'
 
 export default function PickupsScreen() {
   const { t } = useTranslation()
-  const theme = useAppTheme()
   const [records, setRecords] = useState<PickupRecord[]>(() => readPickupLog())
   const [askingId, setAskingId] = useState<string | null>(null)
   const [notes, setNotes] = useState<Record<string, string>>({})
@@ -62,7 +61,7 @@ export default function PickupsScreen() {
         {routeQuery.isError ? <ErrorState error={routeQuery.error} onRetry={() => void routeQuery.refetch()} /> : null}
         {ready && pickups.length === 0 ? <EmptyState title={t('pickupEmpty')} /> : null}
         {pickups.length > 0 ? (
-          <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong }}>
+          <Text className="text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
             {t('pickupSummary', { collected, missed })}
           </Text>
         ) : null}
@@ -74,17 +73,13 @@ export default function PickupsScreen() {
           return (
             <View
               key={stop.id}
-              style={{
-                marginTop: theme.spacing.lg,
-                paddingTop: theme.spacing.md,
-                borderTopWidth: theme.strokes.hairline,
-                borderTopColor: theme.colors.border,
-              }}
+              className="mt-4 border-t pt-3"
+              style={{ borderTopColor: colors.border }}
             >
-              <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>
+              <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
                 {stop.name}
               </Text>
-              <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
+              <View className="mt-3 flex-row gap-2">
                 <Choice
                   label={t('pickupCollected')}
                   selected={collectedSelected}
@@ -99,11 +94,14 @@ export default function PickupsScreen() {
                 />
               </View>
               {missedSelected ? (
-                <View style={{ marginTop: theme.spacing.md }}>
-                  <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption }}>
+                <View className="mt-3">
+                  <Text
+                    className="text-xs uppercase tracking-wider"
+                    style={{ color: colors.textMuted }}
+                  >
                     {t('pickupAddReason')}
                   </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginTop: theme.spacing.sm }}>
+                  <View className="mt-2 flex-row flex-wrap gap-2">
                     {pickupReasons.map((reason) => (
                       <Choice
                         key={reason}
@@ -120,17 +118,12 @@ export default function PickupsScreen() {
                       value={notes[stop.id] ?? record.note ?? ''}
                       onChangeText={(value) => saveOtherNote(stop.id, value)}
                       placeholder={t('pickupReasonOtherHint')}
-                      placeholderTextColor={theme.colors.textSecondary}
+                      placeholderTextColor={colors.textMuted}
+                      className="mt-2 min-h-[48px] rounded-xl border px-4 text-[15px]"
                       style={{
-                        minHeight: theme.touchTarget.minHeight,
-                        marginTop: theme.spacing.sm,
-                        backgroundColor: theme.colors.background,
-                        borderWidth: theme.strokes.strong,
-                        borderColor: theme.colors.border,
-                        borderRadius: theme.radii.md,
-                        paddingHorizontal: theme.spacing.lg,
-                        color: theme.colors.textPrimary,
-                        ...theme.typography.body,
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                        color: colors.textPrimary,
                       }}
                     />
                   ) : null}
@@ -157,10 +150,10 @@ function Choice({
   compact?: boolean
   onPress: () => void
 }) {
-  const theme = useAppTheme()
-  const fill = tone === 'warning' ? theme.colors.warning : theme.colors.primary
-  const ink = tone === 'warning' ? theme.colors.onWarning : theme.colors.onPrimary
+  const fill = tone === 'warning' ? colors.warning : colors.primary
 
+  // PressableScale keeps a plain `style` prop (its className support is unknown),
+  // so the layout values stay as raw numbers here and only the colors change.
   return (
     <PressableScale
       accessibilityLabel={label}
@@ -169,18 +162,21 @@ function Choice({
       style={{
         flexGrow: compact ? 0 : 1,
         flexBasis: compact ? '48%' : 0,
-        minHeight: theme.touchTarget.minHeight,
-        borderRadius: theme.radii.md,
-        borderWidth: theme.strokes.strong,
-        borderColor: selected ? fill : theme.colors.border,
-        backgroundColor: selected ? fill : theme.colors.card,
+        minHeight: 48,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: selected ? fill : colors.border,
+        backgroundColor: selected ? fill : colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
-        paddingHorizontal: theme.spacing.sm,
-        paddingVertical: theme.spacing.sm,
+        paddingHorizontal: 8,
+        paddingVertical: 8,
       }}
     >
-      <Text style={{ color: selected ? ink : theme.colors.textPrimary, ...theme.typography.button, textAlign: 'center' }}>
+      <Text
+        className="text-center text-sm font-semibold"
+        style={{ color: selected ? '#FFFFFF' : colors.textPrimary }}
+      >
         {label}
       </Text>
     </PressableScale>

@@ -7,12 +7,11 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { GradientHeader } from '@/components/ui/GradientHeader'
 import { Screen } from '@/components/ui/Screen'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAppTheme } from '@/hooks/useAppTheme'
 import { getPublishedAnnouncements, type Announcement } from '@/services/announcements'
+import { colors } from '@/theme/colors'
 
 export default function InboxScreen() {
   const { t } = useTranslation()
-  const theme = useAppTheme()
   const notices = useQuery({
     queryKey: ['announcements'],
     queryFn: getPublishedAnnouncements,
@@ -47,35 +46,37 @@ export default function InboxScreen() {
 
 function Notice({ notice }: { notice: Announcement }) {
   const { t } = useTranslation()
-  const theme = useAppTheme()
   const tone =
     notice.priority === 'URGENT'
-      ? { fill: theme.colors.danger, ink: theme.colors.onDanger, label: t('priorityUrgent') }
+      ? { fill: colors.error, ink: '#FFFFFF', label: t('priorityUrgent') }
       : notice.priority === 'IMPORTANT'
-        ? { fill: theme.colors.warning, ink: theme.colors.onWarning, label: t('priorityImportant') }
-        : { fill: theme.colors.secondary, ink: theme.colors.onSecondary, label: t('priorityNormal') }
+        ? { fill: colors.warning, ink: '#FFFFFF', label: t('priorityImportant') }
+        : { fill: colors.primaryLight, ink: colors.primary, label: t('priorityNormal') }
 
   return (
     <View>
       <View
-        style={{
-          alignSelf: 'flex-start',
-          backgroundColor: tone.fill,
-          borderRadius: theme.radii.pill,
-          paddingHorizontal: theme.spacing.md,
-          minHeight: 32,
-          justifyContent: 'center',
-          marginBottom: theme.spacing.sm,
-        }}
+        className="mb-2 min-h-[32px] items-center justify-center self-start rounded-full px-3"
+        style={{ backgroundColor: tone.fill }}
       >
-        <Text style={{ color: tone.ink, ...theme.typography.caption }}>{tone.label}</Text>
+        <Text className="text-xs font-semibold" style={{ color: tone.ink }}>
+          {tone.label}
+        </Text>
       </View>
-      <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{notice.title}</Text>
-      <Text style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+
+      <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
+        {notice.title}
+      </Text>
+
+      <Text className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
         {notice.description}
       </Text>
+
       {notice.publishedAt ? (
-        <Text style={{ color: theme.colors.textSecondary, ...theme.typography.caption, marginTop: theme.spacing.md }}>
+        <Text
+          className="mt-3 text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
           {notice.publishedAt.slice(0, 16).replace('T', ' ')}
         </Text>
       ) : null}

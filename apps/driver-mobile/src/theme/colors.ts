@@ -29,7 +29,22 @@ const paper = '#FFFFFF'
 
 // Filled controls use these inks so labels stay readable in sunlight.
 
-export const colors: Record<ThemeMode, ThemeColors> = {
+export const colors = {
+  primary: '#0F766E',
+  primaryDark: '#0B5D57',
+  primaryLight: '#CCFBF1',
+  background: '#F5F7FA',
+  surface: '#FFFFFF',
+  border: '#E2E8F0',
+  textPrimary: '#0F172A',
+  textSecondary: '#475569',
+  textMuted: '#94A3B8',
+  success: '#15803D',
+  error: '#B91C1C',
+  warning: '#B45309',
+}
+
+export const themeColors: Record<ThemeMode, ThemeColors> = {
   light: {
     primary: '#0F766E',
     primarySoft: '#CCFBF1',
@@ -92,7 +107,7 @@ export type ThemeGradients = {
 }
 
 export function gradients(mode: ThemeMode): ThemeGradients {
-  const palette = colors[mode]
+  const palette = themeColors[mode]
   const pair: [string, string] = [palette.gradientStart, palette.gradientEnd]
 
   return {

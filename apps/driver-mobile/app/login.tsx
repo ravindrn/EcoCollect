@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Text, TextInput } from 'react-native'
+import { Text, TextInput, View } from 'react-native'
 import { Redirect, useRouter } from 'expo-router'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -7,19 +7,16 @@ import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { LanguageChoices } from '@/components/LanguageChoices'
 import { Banner } from '@/components/ui/Banner'
-import { Card } from '@/components/ui/Card'
-import { GradientHeader } from '@/components/ui/GradientHeader'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { Screen } from '@/components/ui/Screen'
-import { useAppTheme } from '@/hooks/useAppTheme'
 import { login } from '@/services/auth'
 import { useSession } from '@/stores/session'
+import { colors } from '@/theme/colors'
 
 type FormValues = { email: string; password: string }
 
 export default function LoginScreen() {
   const { t, i18n } = useTranslation()
-  const theme = useAppTheme()
   const router = useRouter()
   const token = useSession((state) => state.token)
   const [formError, setFormError] = useState<string | null>(null)
@@ -68,54 +65,82 @@ export default function LoginScreen() {
   })
 
   const inputStyle = {
-    minHeight: theme.touchTarget.minHeight,
-    marginTop: theme.spacing.sm,
-    backgroundColor: theme.colors.background,
-    borderWidth: theme.strokes.strong,
-    borderColor: theme.colors.border,
-    borderRadius: theme.radii.md,
-    paddingHorizontal: theme.spacing.lg,
-    color: theme.colors.textPrimary,
-    ...theme.typography.body,
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+    color: colors.textPrimary,
   }
 
   return (
     <Screen>
-      <GradientHeader title={t('shellTitle')} subtitle={t('title')} />
-      <Card>
-          <LanguageChoices />
-          <Text style={{ color: theme.colors.textPrimary, ...theme.typography.label }}>{t('email')}</Text>
-          <TextInput
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            value={email}
-            onChangeText={(value) => setValue('email', value, { shouldValidate: formState.isSubmitted })}
-            placeholder={t('email')}
-            placeholderTextColor={theme.colors.textSecondary}
-            style={inputStyle}
-          />
-          {formState.errors.email?.message ? <Banner tone="danger" message={formState.errors.email.message} /> : null}
-          <Text style={{ color: theme.colors.textPrimary, ...theme.typography.label, marginTop: theme.spacing.lg }}>
-            {t('password')}
+      {/* Header: replaces GradientHeader with the citizen-style light header */}
+      <View className="mb-6 mt-4 items-center">
+        <View
+          className="mb-3 h-20 w-20 items-center justify-center rounded-full"
+          style={{ backgroundColor: colors.primary }}
+        >
+          <Text className="text-[34px] font-bold text-white">
+            {t('shellTitle').trim().charAt(0).toUpperCase()}
           </Text>
-          <TextInput
-            secureTextEntry
-            value={password}
-            onChangeText={(value) => setValue('password', value, { shouldValidate: formState.isSubmitted })}
-            placeholder={t('password')}
-            placeholderTextColor={theme.colors.textSecondary}
-            style={inputStyle}
-          />
-          {formState.errors.password?.message ? <Banner tone="danger" message={formState.errors.password.message} /> : null}
-          {formError ? <Banner tone="danger" message={formError} /> : null}
-          <PrimaryButton
-            label={submitting ? t('signingIn') : t('signIn')}
-            disabled={submitting}
-            onPress={() => void onSubmit()}
-            style={{ marginTop: theme.spacing.xl }}
-          />
-      </Card>
+        </View>
+        <Text className="text-xl font-bold" style={{ color: colors.textPrimary }}>
+          {t('shellTitle')}
+        </Text>
+        <Text className="mt-1 text-sm" style={{ color: colors.textSecondary }}>
+          {t('title')}
+        </Text>
+      </View>
+
+      {/* Card: replaces <Card> with the citizen card style */}
+      <View
+        className="rounded-2xl border p-[18px]"
+        style={{ backgroundColor: colors.surface, borderColor: colors.border }}
+      >
+        <LanguageChoices />
+
+        <Text
+          className="mb-1 mt-4 text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
+          {t('email')}
+        </Text>
+        <TextInput
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="email-address"
+          value={email}
+          onChangeText={(value) => setValue('email', value, { shouldValidate: formState.isSubmitted })}
+          placeholder={t('email')}
+          placeholderTextColor={colors.textMuted}
+          className="min-h-[48px] rounded-xl border px-4 text-[15px]"
+          style={inputStyle}
+        />
+        {formState.errors.email?.message ? <Banner tone="danger" message={formState.errors.email.message} /> : null}
+
+        <Text
+          className="mb-1 mt-4 text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
+          {t('password')}
+        </Text>
+        <TextInput
+          secureTextEntry
+          value={password}
+          onChangeText={(value) => setValue('password', value, { shouldValidate: formState.isSubmitted })}
+          placeholder={t('password')}
+          placeholderTextColor={colors.textMuted}
+          className="min-h-[48px] rounded-xl border px-4 text-[15px]"
+          style={inputStyle}
+        />
+        {formState.errors.password?.message ? <Banner tone="danger" message={formState.errors.password.message} /> : null}
+        {formError ? <Banner tone="danger" message={formError} /> : null}
+
+        <PrimaryButton
+          label={submitting ? t('signingIn') : t('signIn')}
+          disabled={submitting}
+          onPress={() => void onSubmit()}
+          style={{ marginTop: 24 }}
+        />
+      </View>
     </Screen>
   )
 }

@@ -1,5 +1,5 @@
 import type { ViewStyle } from 'react-native'
-import { colors, type ThemeMode } from './colors'
+import { themeColors, type ThemeMode } from './colors'
 
 export const elevationLevels = ['none', 'sm', 'md', 'lg'] as const
 
@@ -42,7 +42,7 @@ function lift(color: string, spec: ShadowSpec, opacityScale: number): ViewStyle 
 }
 
 export function shadows(mode: ThemeMode): ThemeShadows {
-  const color = mode === 'light' ? colors.light.textPrimary : colors.dark.textPrimary
+  const color = mode === 'light' ? themeColors.light.textPrimary : themeColors.dark.textPrimary
   const opacityScale = mode === 'light' ? 1 : 1.25
 
   return {

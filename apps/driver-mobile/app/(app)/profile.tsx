@@ -10,14 +10,13 @@ import { PressableScale } from '@/components/ui/PressableScale'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { Screen } from '@/components/ui/Screen'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAppTheme } from '@/hooks/useAppTheme'
 import { getMyProfile } from '@/services/profile'
 import { signOut } from '@/services/signOut'
 import { usePreferences } from '@/stores/preferences'
+import { colors } from '@/theme/colors'
 
 export default function ProfileScreen() {
   const { t } = useTranslation()
-  const theme = useAppTheme()
   const router = useRouter()
   const mode = usePreferences((state) => state.mode)
   const setMode = usePreferences((state) => state.setMode)
@@ -32,6 +31,11 @@ export default function ProfileScreen() {
     router.replace('/login')
   }
 
+  const initial = (profile?.profile?.fullName || profile?.email || '?')
+    .trim()
+    .charAt(0)
+    .toUpperCase()
+
   return (
     <Screen>
       <GradientHeader title={t('profileTitle')} back />
@@ -42,19 +46,45 @@ export default function ProfileScreen() {
         ) : null}
         {profile ? (
           <View>
-            {profile.profile?.fullName ? (
-              <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{profile.profile.fullName}</Text>
-            ) : (
-              <Text style={{ color: theme.colors.textPrimary, ...theme.typography.body }}>{t('profileMissing')}</Text>
-            )}
-            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption, marginTop: theme.spacing.md }}>
+            <View className="mb-4 items-center">
+              <View
+                className="mb-3 h-20 w-20 items-center justify-center rounded-full"
+                style={{ backgroundColor: colors.primary }}
+              >
+                <Text className="text-[34px] font-bold text-white">{initial}</Text>
+              </View>
+              {profile.profile?.fullName ? (
+                <Text className="text-xl font-bold" style={{ color: colors.textPrimary }}>
+                  {profile.profile.fullName}
+                </Text>
+              ) : (
+                <Text className="text-[15px]" style={{ color: colors.textSecondary }}>
+                  {t('profileMissing')}
+                </Text>
+              )}
+            </View>
+
+            <View className="my-3 h-px" style={{ backgroundColor: colors.border }} />
+
+            <Text
+              className="mb-1 text-xs uppercase tracking-wider"
+              style={{ color: colors.textMuted }}
+            >
               {t('email')}
             </Text>
-            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong }}>{profile.email}</Text>
-            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption, marginTop: theme.spacing.md }}>
+            <Text className="mb-3.5 text-[15px]" style={{ color: colors.textPrimary }}>
+              {profile.email}
+            </Text>
+
+            <View className="my-3 h-px" style={{ backgroundColor: colors.border }} />
+
+            <Text
+              className="mb-1 text-xs uppercase tracking-wider"
+              style={{ color: colors.textMuted }}
+            >
               {t('profileRole')}
             </Text>
-            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong }}>
+            <Text className="text-[15px]" style={{ color: colors.textPrimary }}>
               {profile.role === 'DRIVER' ? t('roleDriver') : profile.role}
             </Text>
           </View>
@@ -62,15 +92,18 @@ export default function ProfileScreen() {
       </Card>
       <Card delay={80}>
         <LanguageChoices />
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption, marginBottom: theme.spacing.sm }}>
+        <Text
+          className="mb-2 text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
           {t('appearance')}
         </Text>
-        <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
+        <View className="flex-row gap-2">
           <ModeChoice label={t('lightMode')} selected={mode === 'light'} onPress={() => setMode('light')} />
           <ModeChoice label={t('darkMode')} selected={mode === 'dark'} onPress={() => setMode('dark')} />
         </View>
       </Card>
-      <View style={{ marginHorizontal: theme.spacing.screen }}>
+      <View className="mx-4">
         <PrimaryButton label={t('signOut')} tone="danger" onPress={() => void onSignOut()} />
       </View>
     </Screen>
@@ -78,25 +111,30 @@ export default function ProfileScreen() {
 }
 
 function ModeChoice({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
-  const theme = useAppTheme()
+  // PressableScale keeps a plain `style` prop (its className support is unknown).
   return (
     <PressableScale
       accessibilityLabel={label}
       accessibilityState={{ selected }}
       onPress={onPress}
       style={{
-        minHeight: theme.touchTarget.minHeight,
-        minWidth: theme.touchTarget.minWidth,
-        paddingHorizontal: theme.spacing.lg,
-        borderRadius: theme.radii.md,
-        borderWidth: theme.strokes.strong,
-        borderColor: selected ? theme.colors.primary : theme.colors.border,
-        backgroundColor: selected ? theme.colors.primarySoft : theme.colors.card,
+        minHeight: 48,
+        minWidth: 48,
+        paddingHorizontal: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: selected ? colors.primary : colors.border,
+        backgroundColor: selected ? colors.primaryLight : colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <Text style={{ color: theme.colors.textPrimary, ...theme.typography.label }}>{label}</Text>
+      <Text
+        className="text-sm font-semibold"
+        style={{ color: selected ? colors.primary : colors.textPrimary }}
+      >
+        {label}
+      </Text>
     </PressableScale>
   )
 }

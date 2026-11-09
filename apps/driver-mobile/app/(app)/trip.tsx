@@ -12,7 +12,6 @@ import { EnginePulse } from '@/components/ui/EnginePulse'
 import { PrimaryButton } from '@/components/ui/PrimaryButton'
 import { Screen } from '@/components/ui/Screen'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { useAppTheme } from '@/hooks/useAppTheme'
 import { fixtureActivityLog, saveActivityLog, segmentMinutes } from '@/services/activity'
 import { leavesCorridor, noteDeviation, type CorridorPoint, type DeviationAlert } from '@/services/corridor'
 import { engineOnMs, intervalsFromTrackerPower } from '@/services/engineLog'
@@ -24,10 +23,10 @@ import { getMyVehicle } from '@/services/vehicle'
 import { fixtureShift } from '@/services/shiftStats'
 import { trackerPowerForEmail } from '@/services/todayRoute'
 import { useTrip } from '@/stores/trip'
+import { colors } from '@/theme/colors'
 
 export default function TripScreen() {
   const { t } = useTranslation()
-  const theme = useAppTheme()
   const active = useTrip((state) => state.active)
   const intervals = useTrip((state) => state.intervals)
   const queueCount = useTrip((state) => state.queueCount)
@@ -79,6 +78,8 @@ export default function TripScreen() {
     checkDeviation(leavesCorridor(liveFix, tripMap.path), liveFix)
   }, [active, liveFix, tripMap, checkDeviation])
 
+  const engineOn = intervals.some((interval) => interval.endedAt === null)
+
   return (
     <Screen>
       <GradientHeader title={t('tripTitle')} back />
@@ -88,7 +89,7 @@ export default function TripScreen() {
           <PrimaryButton
             label={t('deviationDismiss')}
             onPress={() => setRouteNotice(null)}
-            style={{ marginTop: theme.spacing.md }}
+            style={{ marginTop: 12 }}
           />
         </Card>
       ) : null}
@@ -97,15 +98,20 @@ export default function TripScreen() {
         {profileQuery.isError ? <ErrorState error={profileQuery.error} onRetry={() => void profileQuery.refetch()} /> : null}
         {tripMap ? (
           <View>
-            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption }}>{t('plannedRoute')}</Text>
-            <Text style={{ color: theme.colors.textPrimary, ...theme.typography.label, marginBottom: theme.spacing.sm }}>
+            <Text
+              className="text-xs uppercase tracking-wider"
+              style={{ color: colors.textMuted }}
+            >
+              {t('plannedRoute')}
+            </Text>
+            <Text className="mb-2 mt-1 text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
               {t('latestPoint')}
             </Text>
             {tripMap.routePending ? <Skeleton label={t('mapLoading')} lines={2} /> : null}
             {tripMap.routeError ? (
-              <View style={{ marginTop: theme.spacing.md }}>
+              <View className="mt-3">
                 <Banner tone="danger" message={t('mapRoadFailed')} />
-                <PrimaryButton label={t('queueRetry')} onPress={tripMap.retryRoute} style={{ marginTop: theme.spacing.md }} />
+                <PrimaryButton label={t('queueRetry')} onPress={tripMap.retryRoute} style={{ marginTop: 12 }} />
               </View>
             ) : null}
             {!tripMap.routePending && !tripMap.routeError ? (
@@ -121,99 +127,105 @@ export default function TripScreen() {
         ) : null}
         {profileQuery.isSuccess && !tripMap ? <EmptyState title={t('routeEmpty')} /> : null}
         {gpsDenied ? <Banner tone="danger" message={t('gpsDenied')} /> : null}
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong, marginTop: theme.spacing.sm }}>
+        <Text className="mt-2 text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
           {t('gpsQueued')}: {queueCount}
         </Text>
         <PrimaryButton
           label={active ? t('tripStop') : t('tripStart')}
           onPress={() => (active ? useTrip.getState().stop() : useTrip.getState().start())}
-          style={{ marginTop: theme.spacing.lg }}
+          style={{ marginTop: 16 }}
         />
       </Card>
       <Card delay={70}>
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{t('engineLog')}</Text>
+        <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
+          {t('engineLog')}
+        </Text>
         <EnginePulse
-          on={intervals.some((interval) => interval.endedAt === null)}
-          label={intervals.some((interval) => interval.endedAt === null) ? t('engineOnAction') : t('engineOffAction')}
+          on={engineOn}
+          label={engineOn ? t('engineOnAction') : t('engineOffAction')}
         />
-        <View style={{ flexDirection: 'row', gap: theme.spacing.sm, marginTop: theme.spacing.md }}>
-          <View style={{ flex: 1 }}>
+        <View className="mt-3 flex-row gap-2">
+          <View className="flex-1">
             <PrimaryButton label={t('engineOnAction')} onPress={() => useTrip.getState().turnEngineOn()} />
           </View>
-          <View style={{ flex: 1 }}>
+          <View className="flex-1">
             <PrimaryButton label={t('engineOffAction')} onPress={() => useTrip.getState().turnEngineOff()} />
           </View>
         </View>
         {intervals.map((interval) => (
-          <Text key={`driver-${interval.startedAt}`} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+          <Text key={`driver-${interval.startedAt}`} className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
             {clock(interval.startedAt)}–{interval.endedAt === null ? t('engineOpen') : clock(interval.endedAt)}
           </Text>
         ))}
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong, marginTop: theme.spacing.md }}>
+        <Text className="mt-3 text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
           {t('engineTotal')}: {engineOnMs(intervals)} {t('unitMs')}
         </Text>
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.caption, marginTop: theme.spacing.lg }}>
+
+        <View className="my-4 h-px" style={{ backgroundColor: colors.border }} />
+
+        <Text
+          className="text-xs uppercase tracking-wider"
+          style={{ color: colors.textMuted }}
+        >
           {t('engineSource')}
         </Text>
         {trackerIntervals.map((interval) => (
-          <Text key={`tracker-${interval.startedAt}`} style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+          <Text key={`tracker-${interval.startedAt}`} className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
             {clock(interval.startedAt)}–{interval.endedAt === null ? t('engineOpen') : clock(interval.endedAt)}
           </Text>
         ))}
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.body, marginTop: theme.spacing.sm }}>
+        <Text className="mt-2 text-[15px]" style={{ color: colors.textSecondary }}>
           {t('engineTotal')}: {engineOnMs(trackerIntervals)} {t('unitMs')}
         </Text>
       </Card>
       <Card delay={120}>
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>
+        <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
           {t('distanceLabel')}: {shift.distanceKm.toFixed(1)} {t('unitKm')}
         </Text>
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong, marginTop: theme.spacing.sm }}>
+        <Text className="mt-2 text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
           {t('speedLabel')}: {shift.currentSpeedKmh} {t('unitSpeed')}
         </Text>
         {shift.samples.map((sample) => (
           <View
             key={`${sample.latitude}-${sample.speedKmh}`}
-            style={{
-              marginTop: theme.spacing.sm,
-              borderRadius: theme.radii.sm,
-              paddingHorizontal: sample.overspeed ? theme.spacing.md : 0,
-              paddingVertical: sample.overspeed ? theme.spacing.sm : 0,
-              backgroundColor: sample.overspeed ? theme.colors.warning : 'transparent',
-            }}
+            className={sample.overspeed ? 'mt-2 rounded-lg px-3 py-2' : 'mt-2 rounded-lg'}
+            style={{ backgroundColor: sample.overspeed ? colors.warning : 'transparent' }}
           >
-            <Text style={{ color: sample.overspeed ? theme.colors.onWarning : theme.colors.textPrimary, ...theme.typography.body }}>
+            <Text
+              className="text-[15px]"
+              style={{ color: sample.overspeed ? '#FFFFFF' : colors.textSecondary }}
+            >
               {sample.speedKmh} {t('unitSpeed')}{sample.overspeed ? ` ${t('overspeed')}` : ''}
             </Text>
           </View>
         ))}
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong, marginTop: theme.spacing.md }}>
+        <Text className="mt-3 text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
           {t('fuelLabel')}: {shift.fuelLiters.toFixed(1)} {t('unitLiter')} {t('fuelEstimate')}
         </Text>
       </Card>
       <Card delay={170}>
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.heading }}>{t('activityTitle')}</Text>
+        <Text className="text-lg font-bold" style={{ color: colors.textPrimary }}>
+          {t('activityTitle')}
+        </Text>
         {activity.map((segment) => {
           const idle = segment.kind === 'IDLE'
           const label = segment.kind === 'MOVING' ? t('activityMoving') : idle ? t('activityIdle') : t('activityStop')
           return (
             <View
               key={segment.id}
-              style={{
-                marginTop: theme.spacing.sm,
-                borderRadius: theme.radii.sm,
-                paddingHorizontal: idle ? theme.spacing.md : 0,
-                paddingVertical: idle ? theme.spacing.sm : 0,
-                backgroundColor: idle ? theme.colors.warning : 'transparent',
-              }}
+              className={idle ? 'mt-2 rounded-lg px-3 py-2' : 'mt-2 rounded-lg'}
+              style={{ backgroundColor: idle ? colors.warning : 'transparent' }}
             >
-              <Text style={{ color: idle ? theme.colors.onWarning : theme.colors.textPrimary, ...theme.typography.body }}>
+              <Text
+                className="text-[15px]"
+                style={{ color: idle ? '#FFFFFF' : colors.textSecondary }}
+              >
                 {label} {(segment.endedAt - segment.startedAt) / 60000} {t('engineMinutes')}
               </Text>
             </View>
           )
         })}
-        <Text style={{ color: theme.colors.textPrimary, ...theme.typography.bodyStrong, marginTop: theme.spacing.md }}>
+        <Text className="mt-3 text-[15px] font-semibold" style={{ color: colors.textPrimary }}>
           {segmentMinutes(activity)} {t('engineMinutes')}
         </Text>
       </Card>
