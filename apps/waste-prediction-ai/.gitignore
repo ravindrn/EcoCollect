@@ -1,0 +1,36 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Runtime files
+logs/
+results/
+*.log
+
+# Private historical database exports
+data_seed/
+
+# Database backups
+*.dump
+*.backup
+
+# Allow only the three approved CSV files
+data/*
+!data/history.csv
+!data/calendar.csv
+!data/monthly_loads.csv
+
+# Other private datasets
+*.xlsx
+*.parquet
