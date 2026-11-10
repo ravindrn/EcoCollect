@@ -1,0 +1,17 @@
+month,nondeg_loads,deg_loads,amount_printed_rs,source,status,note
+2025-01,10.5,33.0,125250,council payment table 2025,confirmed,
+2025-02,0.0,32.5,97500,council payment table 2025,confirmed,zero non-degradable: confirm true zero
+2025-03,0.0,32.0,96000,council payment table 2025,confirmed,zero non-degradable: confirm true zero
+2025-04,16.0,41.5,164500,council payment table 2025,confirmed,
+2025-05,0.0,37.0,111000,council payment table 2025,confirmed,zero non-degradable: confirm true zero
+2025-06,16.0,41.5,164500,council payment table 2025,confirmed,
+2025-07,60.0,62.0,336000,council payment table 2025,confirmed,
+2025-08,62.0,66.0,353000,council payment table 2025,confirmed,
+2025-09,77.0,70.0,402500,council payment table 2025,confirmed,corrected: 77 non-degradable loads (amount-consistent)
+2025-10,11.5,55.5,195250,council payment table 2025,confirmed,
+2025-11,29.0,50.0,222500,council payment table 2025,confirmed,
+2025-12,33.5,58.0,257750,council payment table 2025,confirmed,
+2026-01,33.0,53.5,243000,council table 2026 [enter confirmation date],confirmed,2025 prices applied
+2026-02,12.5,41.0,154250,council table 2026 [enter confirmation date],confirmed,2025 prices applied
+2026-03,10.5,46.5,165750,council table 2026 [enter confirmation date],confirmed,2025 prices applied
+2026-04,7.0,44.5,151000,council table 2026 [enter confirmation date],confirmed,2025 prices applied
